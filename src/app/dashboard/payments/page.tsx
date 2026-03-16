@@ -102,7 +102,7 @@ export default function PaymentsPage() {
         </div>
         <Button onClick={() => setShowModal(true)} className="inline-flex items-center gap-2">
           <Plus className="h-4 w-4" />
-          Add payment
+          Add payment received
         </Button>
       </div>
 
@@ -112,7 +112,7 @@ export default function PaymentsPage() {
         {loading ? (
           <div className="h-48 animate-pulse" />
         ) : payments.length === 0 ? (
-          <div className="text-sm text-white/60">No payments recorded yet.</div>
+          <div className="text-sm text-white/60">No payments received recorded yet.</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[720px] text-left">
@@ -171,7 +171,7 @@ export default function PaymentsPage() {
           <div className="w-full max-w-lg rounded-3xl bg-[#1b1b1f] p-6 shadow-xl">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-lg font-semibold">{isEditing ? 'Edit Payment' : 'Add Payment'}</div>
+                <div className="text-lg font-semibold">{isEditing ? 'Edit Payment Received' : 'Add Payment Received'}</div>
                 <div className="text-xs text-white/60">{isEditing ? 'Update the payment record.' : 'Record a payment received against a project.'}</div>
               </div>
               <button onClick={() => {

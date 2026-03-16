@@ -46,7 +46,7 @@ export default function DashboardHome() {
     { label: 'Total Leads', value: data?.totalLeads ?? '—' },
     { label: 'Active Projects', value: data?.activeProjects ?? '—' },
     { label: 'Total Expenses', value: data ? `₹${Math.round(data.totalExpenses).toLocaleString('en-IN')}` : '—' },
-    { label: 'Total Payments', value: data ? `₹${Math.round(data.totalRevenue).toLocaleString('en-IN')}` : '—' },
+    { label: 'Total Payment Received', value: data ? `₹${Math.round(data.totalRevenue).toLocaleString('en-IN')}` : '—' },
   ]
 
   return (
@@ -84,7 +84,7 @@ export default function DashboardHome() {
                 <tr>
                   <th className="px-4 py-3">Project</th>
                   <th className="px-4 py-3">Expenses</th>
-                  <th className="px-4 py-3">Payments</th>
+                  <th className="px-4 py-3">Payment Received</th>
                 </tr>
               </thead>
               <tbody>

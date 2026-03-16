@@ -129,7 +129,7 @@ export default function ReportsPage() {
               transition={{ duration: 0.45 }}
               className="glass rounded-3xl p-5"
             >
-              <div className="text-xs text-white/60">Total Payments</div>
+              <div className="text-xs text-white/60">Total Payment Received</div>
               <div className="mt-2 text-2xl font-semibold">₹{data ? data.totalRevenue.toLocaleString('en-IN') : '—'}</div>
             </motion.div>
           </div>
@@ -143,7 +143,7 @@ export default function ReportsPage() {
                     <tr>
                       <th className="px-4 py-3">Project</th>
                       <th className="px-4 py-3">Expenses</th>
-                      <th className="px-4 py-3">Payments</th>
+                      <th className="px-4 py-3">Payment Received</th>
                       <th className="px-4 py-3">Net</th>
                     </tr>
                   </thead>
@@ -223,7 +223,7 @@ export default function ReportsPage() {
                 </div>
 
                 <div>
-                  <h4 className="text-sm font-medium mb-3">Monthly Vendor Payments</h4>
+                  <h4 className="text-sm font-medium mb-3">Monthly Vendor Payment Received</h4>
                   {vendorAnalytics.monthlyVendorPayments.length > 0 ? (
                     <div className="h-48">
                       <ResponsiveContainer width="100%" height="100%">
