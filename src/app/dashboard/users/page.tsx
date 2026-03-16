@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { apiFetch } from "@/lib/api";
 
 type User = {
   _id: string;
@@ -36,13 +37,11 @@ export default function UsersPage() {
 
     const token = typeof window !== 'undefined' ? localStorage.getItem('acls_token') || '' : ''
     if (token) {
-      fetch('http://localhost:5000/api/auth/userdetail', {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-        .then((res) => res.json())
+      apiFetch<{ userdetails: { role: string } }>('/api/auth/userdetail', { token })
         .then((data) => {
           if (data?.userdetails?.role) {
-            setCurrentUserRole(data.userdetails.role)
+            const role = data.userdetails.role as 'admin' | 'user'
+            setCurrentUserRole(role)
           }
         })
         .catch(() => {})
@@ -52,8 +51,7 @@ export default function UsersPage() {
   async function fetchUsers() {
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:5000/api/users");
-      const data = await res.json();
+      const data = await apiFetch<User[]>("/api/users");
       setUsers(data);
     } catch {
       setError("Failed to fetch users");
@@ -67,12 +65,10 @@ export default function UsersPage() {
     setCreating(true);
     setError("");
     try {
-      const res = await fetch("http://localhost:5000/api/users", {
+      await apiFetch("/api/users", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: form,
       });
-      if (!res.ok) throw new Error("Failed to create user");
       setShowCreate(false);
       setForm({ name: "", email: "", password: "", countryCode: "", mobilenumber: "", role: "user" });
       fetchUsers();
@@ -86,7 +82,7 @@ export default function UsersPage() {
   async function handleDelete(id: string) {
     if (!window.confirm("Delete this user?")) return;
     try {
-      await fetch(`http://localhost:5000/api/users/${id}`, { method: "DELETE" });
+      await apiFetch(`/api/users/${id}`, { method: "DELETE" });
       fetchUsers();
     } catch {
       setError("Failed to delete user");
@@ -100,10 +96,9 @@ export default function UsersPage() {
     }
 
     try {
-      await fetch(`http://localhost:5000/api/users/${id}`, {
+      await apiFetch(`/api/users/${id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ role: updateRole[id] }),
+        body: { role: updateRole[id] },
       });
       setUpdatingId(null);
       fetchUsers();
