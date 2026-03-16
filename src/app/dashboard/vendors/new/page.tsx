@@ -63,15 +63,6 @@ export default function NewVendorPage() {
     }
   }
 
-  const handleProjectToggle = (projectId: string) => {
-    setFormData(prev => ({
-      ...prev,
-      projects: prev.projects.includes(projectId)
-        ? prev.projects.filter(id => id !== projectId)
-        : [...prev.projects, projectId]
-    }))
-  }
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -108,7 +99,7 @@ export default function NewVendorPage() {
             <Label htmlFor="type">Vendor Type *</Label>
             <Select
               value={formData.type}
-              onValueChange={(value: any) => setFormData(prev => ({ ...prev, type: value }))}
+              onValueChange={(value: string) => setFormData(prev => ({ ...prev, type: value }))}
             >
               <SelectTrigger>
                 <SelectValue />

@@ -32,11 +32,7 @@ export default function ProjectsPage() {
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('acls_token') || '' : ''
 
-  useEffect(() => {
-    loadProjects()
-  }, [])
-
-  const loadProjects = async () => {
+  const loadProjects = React.useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
@@ -47,7 +43,11 @@ export default function ProjectsPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [token])
+
+  useEffect(() => {
+    loadProjects()
+  }, [loadProjects])
 
   const filtered = useMemo(() => {
     const lower = search.trim().toLowerCase()

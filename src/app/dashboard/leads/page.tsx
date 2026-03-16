@@ -33,11 +33,7 @@ export default function LeadsPage() {
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('acls_token') || '' : ''
 
-  useEffect(() => {
-    fetchLeads()
-  }, [])
-
-  const fetchLeads = async () => {
+  const fetchLeads = React.useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
@@ -48,7 +44,13 @@ export default function LeadsPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [token])
+
+  useEffect(() => {
+    fetchLeads()
+  }, [fetchLeads])
+
+
 
   const filteredLeads = useMemo(() => {
     const lower = query.toLowerCase().trim()

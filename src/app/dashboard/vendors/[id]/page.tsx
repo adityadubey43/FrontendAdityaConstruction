@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
@@ -45,9 +45,9 @@ export default function VendorDetailPage() {
     if (params.id) {
       fetchVendor()
     }
-  }, [params.id])
+  }, [params.id, fetchVendor])
 
-  const fetchVendor = async () => {
+  const fetchVendor = useCallback(async () => {
     try {
       const data = await apiFetch(`/api/vendors/${params.id}`)
       setVendor(data)
@@ -56,7 +56,7 @@ export default function VendorDetailPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [params.id])
 
   const handleDelete = async () => {
     if (!confirm('Are you sure you want to delete this vendor?')) return

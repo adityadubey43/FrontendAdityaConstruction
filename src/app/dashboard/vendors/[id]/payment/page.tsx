@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
@@ -10,11 +10,6 @@ import { Label } from '@/components/ui/label'
 import { apiFetch } from '@/lib/api'
 import { ArrowLeft, DollarSign, Save } from 'lucide-react'
 import Link from 'next/link'
-
-interface Project {
-  _id: string
-  name: string
-}
 
 interface Vendor {
   _id: string
@@ -41,9 +36,9 @@ export default function RecordPaymentPage() {
     if (params.id) {
       fetchVendor()
     }
-  }, [params.id])
+  }, [params.id, fetchVendor])
 
-  const fetchVendor = async () => {
+  const fetchVendor = useCallback(async () => {
     try {
       const data = await apiFetch(`/api/vendors/${params.id}`)
       setVendor(data)
@@ -53,7 +48,7 @@ export default function RecordPaymentPage() {
     } catch (error) {
       console.error('Failed to fetch vendor:', error)
     }
-  }
+  }, [params.id])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -126,7 +121,7 @@ export default function RecordPaymentPage() {
           <Label htmlFor="method">Payment Method *</Label>
           <Select
             value={formData.method}
-            onValueChange={(value: any) => setFormData(prev => ({ ...prev, method: value }))}
+            onValueChange={(value: string) => setFormData(prev => ({ ...prev, method: value as 'cash' | 'check' | 'bank_transfer' | 'credit_card' }))}
           >
             <SelectTrigger>
               <SelectValue />

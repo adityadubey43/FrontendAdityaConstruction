@@ -105,7 +105,7 @@ export default function ProjectDetailPage() {
       })
       .catch((e) => setError(e instanceof Error ? e.message : 'Failed to load'))
       .finally(() => setLoading(false))
-  }, [id])
+  }, [id, token])
 
   const tabButtons = [
     { key: 'overview', label: 'Overview', icon: Timeline },

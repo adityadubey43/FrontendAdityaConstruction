@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
@@ -15,17 +15,6 @@ import Link from 'next/link'
 interface Project {
   _id: string
   projectName: string
-}
-
-interface Vendor {
-  _id: string;
-  vendorName: string;
-  vendorType: string;
-  companyName: string;
-  email: string;
-  phoneNumber: string;
-  address: string;
-  assignedProjects: string[];
 }
 
 export default function EditVendorPage() {
@@ -49,9 +38,9 @@ export default function EditVendorPage() {
       fetchVendor()
       fetchProjects()
     }
-  }, [params.id])
+  }, [params.id, fetchVendor, fetchProjects])
 
-  const fetchVendor = async () => {
+  const fetchVendor = useCallback(async () => {
     try {
       const data = await apiFetch(`/api/vendors/${params.id}`)
       setFormData({
@@ -68,16 +57,16 @@ export default function EditVendorPage() {
     } finally {
       setFetchLoading(false)
     }
-  }
+  }, [params.id])
 
-  const fetchProjects = async () => {
+  const fetchProjects = useCallback(async () => {
     try {
       const data = await apiFetch('/api/projects')
       setProjects(data)
     } catch (error) {
       console.error('Failed to fetch projects:', error)
     }
-  }
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -102,15 +91,6 @@ export default function EditVendorPage() {
     } finally {
       setLoading(false)
     }
-  }
-
-  const handleProjectToggle = (projectId: string) => {
-    setFormData(prev => ({
-      ...prev,
-      projects: prev.projects.includes(projectId)
-        ? prev.projects.filter(id => id !== projectId)
-        : [...prev.projects, projectId]
-    }))
   }
 
   if (fetchLoading) {
@@ -157,7 +137,7 @@ export default function EditVendorPage() {
             <Label htmlFor="vendorType">Vendor Type *</Label>
             <Select
               value={formData.vendorType}
-              onValueChange={(value: any) => setFormData(prev => ({ ...prev, vendorType: value }))}
+              onValueChange={(value: string) => setFormData(prev => ({ ...prev, vendorType: value }))}
             >
               <SelectTrigger>
                 <SelectValue />

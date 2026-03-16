@@ -222,7 +222,9 @@ export default function VendorsPage() {
                   <div className="max-w-[160px] truncate text-sm">
                     {vendor.projects && vendor.projects.length > 0
                       ? vendor.projects
-                          .map((p: any) => p.projectName ?? p.name ?? p)
+                          .map((p: { projectName?: string; name?: string } | string) => 
+                            typeof p === 'string' ? p : (p.projectName ?? p.name ?? 'Unknown')
+                          )
                           .slice(0, 2)
                           .join(', ') +
                         (vendor.projects.length > 2 ? ` +${vendor.projects.length - 2}` : '')
