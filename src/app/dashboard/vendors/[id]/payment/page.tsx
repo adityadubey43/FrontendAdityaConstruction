@@ -32,15 +32,9 @@ export default function RecordPaymentPage() {
     date: new Date().toISOString().split('T')[0]
   })
 
-  useEffect(() => {
-    if (params.id) {
-      fetchVendor()
-    }
-  }, [params.id, fetchVendor])
-
   const fetchVendor = useCallback(async () => {
     try {
-      const data = await apiFetch(`/api/vendors/${params.id}`)
+      const data = await apiFetch<Vendor>(`/api/vendors/${params.id}`)
       setVendor(data)
       if (data.projects.length > 0) {
         setFormData(prev => ({ ...prev, projectId: data.projects[0]._id }))
@@ -49,6 +43,12 @@ export default function RecordPaymentPage() {
       console.error('Failed to fetch vendor:', error)
     }
   }, [params.id])
+
+  useEffect(() => {
+    if (params.id) {
+      fetchVendor()
+    }
+  }, [params.id, fetchVendor])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

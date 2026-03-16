@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
@@ -30,18 +30,18 @@ export default function NewVendorPage() {
     projectId: ''
   })
 
-  useEffect(() => {
-    fetchProjects()
-  }, [])
-
-  const fetchProjects = async () => {
+  const fetchProjects = useCallback(async () => {
     try {
-      const data = await apiFetch('/api/projects')
+      const data = await apiFetch<Project[]>('/api/projects')
       setProjects(data)
     } catch (error) {
       console.error('Failed to fetch projects:', error)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    fetchProjects()
+  }, [fetchProjects])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -99,7 +99,7 @@ export default function NewVendorPage() {
             <Label htmlFor="type">Vendor Type *</Label>
             <Select
               value={formData.type}
-              onValueChange={(value: string) => setFormData(prev => ({ ...prev, type: value }))}
+              onValueChange={(value: string) => setFormData(prev => ({ ...prev, type: value as "material" | "labor" | "equipment" | "service" }))}
             >
               <SelectTrigger>
                 <SelectValue />

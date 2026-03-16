@@ -101,7 +101,7 @@ export default function UsersPage() {
 
     try {
       await fetch(`http://localhost:5000/api/users/${id}`, {
-        method: "PUT",
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ role: updateRole[id] }),
       });

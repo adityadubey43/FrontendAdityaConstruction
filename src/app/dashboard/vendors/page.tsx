@@ -61,7 +61,7 @@ export default function VendorsPage() {
 
   const fetchProjects = async () => {
     try {
-      const data = await apiFetch('/api/projects')
+      const data = await apiFetch<Array<{ _id: string; projectName: string }>>('/api/projects')
       setProjects(data)
     } catch (error) {
       console.error('Failed to fetch projects:', error)
@@ -71,7 +71,7 @@ export default function VendorsPage() {
   const fetchVendors = async () => {
     setLoading(true)
     try {
-      const data = await apiFetch('/api/vendors')
+      const data = await apiFetch<Vendor[]>('/api/vendors')
       setVendors(data)
     } catch (error) {
       console.error('Failed to fetch vendors:', error)

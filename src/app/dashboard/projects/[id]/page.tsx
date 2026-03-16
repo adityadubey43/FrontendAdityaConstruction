@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { apiFetch } from '@/lib/api'
-import { ArrowLeft, FileText, ListChecks, Timeline, Users, DollarSign, Plus, Truck } from 'lucide-react'
+import { ArrowLeft, FileText, ListChecks, Clock, Users, DollarSign, Plus, Truck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 type ProjectStatus = 'Planning' | 'In Progress' | 'On Hold' | 'Completed'
@@ -108,11 +108,11 @@ export default function ProjectDetailPage() {
   }, [id, token])
 
   const tabButtons = [
-    { key: 'overview', label: 'Overview', icon: Timeline },
+    { key: 'overview', label: 'Overview', icon: Clock },
     { key: 'team', label: 'Team', icon: Users },
     { key: 'vendors', label: 'Vendors', icon: Truck },
     { key: 'tasks', label: 'Tasks', icon: ListChecks },
-    { key: 'timeline', label: 'Timeline', icon: Timeline },
+    { key: 'timeline', label: 'Timeline', icon: Clock },
     { key: 'docs', label: 'Documents', icon: FileText },
     { key: 'expenses', label: 'Transactions', icon: DollarSign },
   ] as const
@@ -234,7 +234,7 @@ export default function ProjectDetailPage() {
                       onClick={async () => {
                         if (!project) return
                         const updated = project.assignedTeam?.filter((u) => u._id !== member._id) ?? []
-                        await apiFetch(`/api/projects/${project._id}`, { token, method: 'PUT', body: { assignedTeam: updated.map((u) => u._id) } })
+                        await apiFetch(`/api/projects/${project._id}`, { token, method: 'PATCH', body: { assignedTeam: updated.map((u) => u._id) } })
                         setProject({ ...project, assignedTeam: updated })
                       }}
                       className="rounded-xl bg-white/10 px-3 py-1 text-xs hover:bg-white/15"
@@ -400,7 +400,7 @@ export default function ProjectDetailPage() {
   )
 }
 
-export function TeamModal({
+function TeamModal({
   project,
   allUsers,
   token,
@@ -421,7 +421,7 @@ export function TeamModal({
 
   const save = async () => {
     const updatedTeam = allUsers.filter((u) => selected.includes(u._id))
-    await apiFetch(`/api/projects/${project._id}`, { token, method: 'PUT', body: { assignedTeam: selected } })
+    await apiFetch(`/api/projects/${project._id}`, { token, method: 'PATCH', body: { assignedTeam: selected } })
     onSaved(updatedTeam)
     onClose()
   }
@@ -477,7 +477,7 @@ export function TeamModal({
   )
 }
 
-export function ExpenseModal({
+function ExpenseModal({
   projectId,
   token,
   onClose,

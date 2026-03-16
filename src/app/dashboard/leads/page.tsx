@@ -247,7 +247,7 @@ function LeadModal({
     setSaving(true)
     setError('')
     try {
-      const method = lead ? 'PUT' : 'POST'
+      const method = lead ? 'PATCH' : 'POST'
       const url = lead ? `/api/leads/${lead._id}` : '/api/leads'
       await apiFetch<Lead>(url, { token, method, body: form })
       onSave()

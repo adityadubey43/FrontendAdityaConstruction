@@ -90,7 +90,7 @@ export default function SettingsPage() {
 
     try {
       const updated = await apiFetch<Settings>('/api/settings', {
-        method: 'PUT',
+        method: 'PATCH',
         token,
         body: form,
       })
@@ -128,7 +128,7 @@ export default function SettingsPage() {
       }
 
       const updated = await apiFetch<{ userdetails: AccountUser }>('/api/auth/userdetail', {
-        method: 'PUT',
+        method: 'PATCH',
         token,
         body: payload,
       })

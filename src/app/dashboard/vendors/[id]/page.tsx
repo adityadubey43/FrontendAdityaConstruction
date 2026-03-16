@@ -41,15 +41,9 @@ export default function VendorDetailPage() {
   const [vendor, setVendor] = useState<Vendor | null>(null)
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    if (params.id) {
-      fetchVendor()
-    }
-  }, [params.id, fetchVendor])
-
   const fetchVendor = useCallback(async () => {
     try {
-      const data = await apiFetch(`/api/vendors/${params.id}`)
+      const data = await apiFetch<Vendor>(`/api/vendors/${params.id}`)
       setVendor(data)
     } catch (error) {
       console.error('Failed to fetch vendor:', error)
@@ -57,6 +51,12 @@ export default function VendorDetailPage() {
       setLoading(false)
     }
   }, [params.id])
+
+  useEffect(() => {
+    if (params.id) {
+      fetchVendor()
+    }
+  }, [params.id, fetchVendor])
 
   const handleDelete = async () => {
     if (!confirm('Are you sure you want to delete this vendor?')) return
@@ -106,13 +106,13 @@ export default function VendorDetailPage() {
           </div>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" asChild>
+          <Button variant="secondary" asChild>
             <Link href={`/dashboard/vendors/${vendor._id}/edit`}>
               <Edit className="mr-2 h-4 w-4" />
               Edit
             </Link>
           </Button>
-          <Button variant="destructive" onClick={handleDelete}>
+          <Button variant="ghost" onClick={handleDelete}>
             <Trash2 className="mr-2 h-4 w-4" />
             Delete
           </Button>
@@ -158,7 +158,7 @@ export default function VendorDetailPage() {
               <div className="space-y-2">
                 {vendor.projects.map((project) => (
                   <div key={project._id} className="flex items-center justify-between">
-                    <span>{project.projectName ?? project.name}</span>
+                    <span>{project.projectName}</span>
                     <Button variant="ghost" size="sm" asChild>
                       <Link href={`/dashboard/projects/${project._id}`}>
                         View Project

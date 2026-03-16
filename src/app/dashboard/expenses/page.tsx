@@ -162,7 +162,7 @@ export default function ExpensesPage() {
                             amount: String(exp.amount),
                             category: exp.category,
                             date: exp.date ? new Date(exp.date).toISOString().slice(0, 10) : '',
-                            notes: exp.notes,
+                            notes: exp.notes || '',
                             project: exp.project,
                             vendorId: exp.vendor?._id,
                           })
@@ -292,7 +292,6 @@ export default function ExpensesPage() {
                     setForm({
                       title: '',
                       amount: '',
-                      type: 'expense',
                       category: 'Miscellaneous',
                       date: new Date().toISOString().slice(0, 10),
                       notes: '',

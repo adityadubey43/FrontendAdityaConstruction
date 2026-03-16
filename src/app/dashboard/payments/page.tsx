@@ -65,7 +65,7 @@ export default function PaymentsPage() {
       if (isEditing && editingId) {
         const updated = await apiFetch<Payment>(`/api/payments/${editingId}`, {
           token,
-          method: 'PUT',
+          method: 'PATCH',
           body,
         })
         setPayments((prev) => prev.map((pay) => (pay._id === editingId ? updated : pay)))

@@ -33,16 +33,9 @@ export default function EditVendorPage() {
     projectId: ''
   })
 
-  useEffect(() => {
-    if (params.id) {
-      fetchVendor()
-      fetchProjects()
-    }
-  }, [params.id, fetchVendor, fetchProjects])
-
   const fetchVendor = useCallback(async () => {
     try {
-      const data = await apiFetch(`/api/vendors/${params.id}`)
+      const data = await apiFetch<{ vendorName: string; vendorType: string; companyName: string; email: string; phoneNumber: string; address: string; assignedProjects?: Array<{ _id: string }> }>(`/api/vendors/${params.id}`)
       setFormData({
         vendorName: data.vendorName,
         vendorType: data.vendorType,
@@ -61,12 +54,19 @@ export default function EditVendorPage() {
 
   const fetchProjects = useCallback(async () => {
     try {
-      const data = await apiFetch('/api/projects')
+      const data = await apiFetch<Project[]>('/api/projects')
       setProjects(data)
     } catch (error) {
       console.error('Failed to fetch projects:', error)
     }
   }, [])
+
+  useEffect(() => {
+    if (params.id) {
+      fetchVendor()
+      fetchProjects()
+    }
+  }, [params.id, fetchVendor, fetchProjects])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -74,7 +74,7 @@ export default function EditVendorPage() {
 
     try {
       await apiFetch(`/api/vendors/${params.id}`, {
-        method: 'PUT',
+        method: 'PATCH',
         body: {
           vendorName: formData.vendorName,
           vendorType: formData.vendorType,
