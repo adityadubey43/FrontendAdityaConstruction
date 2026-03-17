@@ -11,12 +11,14 @@ export default function DashboardHome() {
         activeProjects: number
         totalExpenses: number
         totalRevenue: number
+        totalBills: number
         projectSummaries?: Array<{
           projectId: string
           projectName?: string
           expenseTotal: number
           paymentTotal: number
           billTotal: number
+          netTotal?: number
         }>
       }
     | null
@@ -30,12 +32,14 @@ export default function DashboardHome() {
       activeProjects: number
       totalExpenses: number
       totalRevenue: number
+      totalBills: number
       projectSummaries?: Array<{
         projectId: string
         projectName?: string
         expenseTotal: number
         paymentTotal: number
         billTotal: number
+        netTotal?: number
       }>
     }>('/api/reports/dashboard', {
       token,
@@ -48,7 +52,9 @@ export default function DashboardHome() {
     { label: 'Total Leads', value: data?.totalLeads ?? '—' },
     { label: 'Active Projects', value: data?.activeProjects ?? '—' },
     { label: 'Total Expenses', value: data ? `₹${Math.round(data.totalExpenses).toLocaleString('en-IN')}` : '—' },
+    { label: 'Total Bills', value: data ? `₹${Math.round(data.totalBills).toLocaleString('en-IN')}` : '—' },
     { label: 'Total Payment Received', value: data ? `₹${Math.round(data.totalRevenue).toLocaleString('en-IN')}` : '—' },
+    { label: 'Pending Bills', value: data ? `₹${Math.round(data.totalBills - data.totalRevenue).toLocaleString('en-IN')}` : '—' },
   ]
 
   return (
@@ -88,6 +94,7 @@ export default function DashboardHome() {
                   <th className="px-4 py-3">Expenses</th>
                   <th className="px-4 py-3">Payment Received</th>
                   <th className="px-4 py-3">Total Bills</th>
+                  <th className="px-4 py-3">Profit/Loss</th>
                 </tr>
               </thead>
               <tbody>
@@ -97,6 +104,9 @@ export default function DashboardHome() {
                     <td className="px-4 py-4">₹{Math.round(project.expenseTotal).toLocaleString('en-IN')}</td>
                     <td className="px-4 py-4">₹{Math.round(project.paymentTotal).toLocaleString('en-IN')}</td>
                     <td className="px-4 py-4">₹{Math.round(project.billTotal || 0).toLocaleString('en-IN')}</td>
+                    <td className={`px-4 py-4 ${(project.netTotal || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                      ₹{Math.round(project.netTotal || 0).toLocaleString('en-IN')}
+                    </td>
                   </tr>
                 ))}
               </tbody>
