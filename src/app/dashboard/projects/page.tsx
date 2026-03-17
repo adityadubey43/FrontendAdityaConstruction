@@ -228,7 +228,7 @@ function ProjectModal({
     setError('')
 
     try {
-      const method: 'POST' | 'PATCH' = editing ? 'PATCH' : 'POST'
+      const method: 'POST' | 'PUT' = editing ? 'PUT' : 'POST'
       const url = editing ? `/api/projects/${editing._id}` : '/api/projects'
       await apiFetch<Project>(url, { token, method, body: form })
       onSaved()

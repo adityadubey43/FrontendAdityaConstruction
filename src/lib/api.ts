@@ -1,5 +1,5 @@
 
-type HttpMethod = 'GET' | 'POST' | 'PATCH' | 'DELETE'
+type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://ebook-iwzg.vercel.app'
 
