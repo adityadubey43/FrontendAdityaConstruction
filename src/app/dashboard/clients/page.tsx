@@ -385,7 +385,6 @@ export default function ClientsPage() {
                   </thead>
                   <tbody className="divide-y divide-white/10">
                     {selectedClient.projects.map((project) => {
-                      const projPaymentPercentage = project.bills === 0 ? 100 : (project.payments / project.bills) * 100
                       const isFullyPaid = project.pending <= 0
                       
                       return (
