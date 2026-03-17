@@ -7,7 +7,7 @@ export const metadata: Metadata = {
     template: '%s | Aditya Construction',
   },
   description: 'Premium construction and project management by Aditya Construction.',
-  metadataBase: new URL('http://localhost:3000'),
+  metadataBase: new URL('https://aditya-construction.vercel.app'),
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
