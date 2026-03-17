@@ -233,7 +233,7 @@ export default function VendorsPage() {
                       : 'None'}
                   </div>
                 </TableCell>
-                <TableCell>₹{vendor.totalPaid.toLocaleString()}</TableCell>
+                <TableCell>₹{(vendor.totalPaid ?? 0).toLocaleString()}</TableCell>
                 <TableCell>
                   <div className="flex gap-2">
                     <Button variant="ghost" size="sm" asChild>

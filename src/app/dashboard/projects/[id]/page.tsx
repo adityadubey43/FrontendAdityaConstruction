@@ -303,7 +303,7 @@ export default function ProjectDetailPage() {
                       <div className="text-xs text-white/60">{vendor.contact.email}</div>
                     </div>
                     <div className="text-right">
-                      <div className="text-sm font-semibold">₹{vendor.totalPaid.toLocaleString()}</div>
+                      <div className="text-sm font-semibold">₹{(vendor.totalPaid ?? 0).toLocaleString()}</div>
                       <div className="text-xs text-white/60">Total Paid</div>
                     </div>
                     <Button

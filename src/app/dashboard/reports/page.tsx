@@ -217,7 +217,7 @@ export default function ReportsPage() {
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="text-sm font-medium">₹{vendor.totalPaid.toLocaleString()}</div>
+                          <div className="text-sm font-medium">₹{(vendor.totalPaid ?? 0).toLocaleString()}</div>
                           <div className="text-xs text-white/60">{vendor.paymentCount} payments</div>
                         </div>
                       </div>

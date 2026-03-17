@@ -185,7 +185,7 @@ export default function VendorDetailPage() {
               </Button>
             </div>
             <div className="text-3xl font-bold text-white">
-              ₹{vendor.totalPaid.toLocaleString()}
+              ₹{(vendor.totalPaid ?? 0).toLocaleString()}
             </div>
             <p className="text-white/60">Total Paid</p>
           </div>
