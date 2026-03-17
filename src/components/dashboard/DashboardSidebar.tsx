@@ -12,6 +12,7 @@ const items = [
   { label: 'Users', href: '/dashboard/users', icon: Users },
   { label: 'Leads', href: '/dashboard/leads', icon: PhoneCall },
   { label: 'Projects', href: '/dashboard/projects', icon: FolderKanban },
+  { label: 'Clients', href: '/dashboard/clients', icon: Users },
   { label: 'Vendors', href: '/dashboard/vendors', icon: Truck },
   { label: 'Expenses', href: '/dashboard/expenses', icon: Wallet },
   { label: 'Payment Received', href: '/dashboard/payments', icon: Wallet },
