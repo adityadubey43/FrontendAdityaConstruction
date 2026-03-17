@@ -46,6 +46,7 @@ export default function VendorsPage() {
   const [payForm, setPayForm] = useState({
     amount: '',
     project: '',
+    category: 'Miscellaneous',
     date: new Date().toISOString().slice(0, 10),
     notes: '',
   })
@@ -101,7 +102,7 @@ export default function VendorsPage() {
         body: {
           title: `Payment to ${payingVendor.name}`,
           amount: parsedAmount,
-          category: 'Miscellaneous',
+          category: payForm.category,
           project: project._id,
           vendor: payingVendor._id,
           date: payForm.date,
@@ -115,6 +116,7 @@ export default function VendorsPage() {
       setPayForm({
         amount: '',
         project: '',
+        category: 'Miscellaneous',
         date: new Date().toISOString().slice(0, 10),
         notes: '',
       })
@@ -231,7 +233,7 @@ export default function VendorsPage() {
                       : 'None'}
                   </div>
                 </TableCell>
-                <TableCell>${vendor.totalPaid.toLocaleString()}</TableCell>
+                <TableCell>₹{vendor.totalPaid.toLocaleString()}</TableCell>
                 <TableCell>
                   <div className="flex gap-2">
                     <Button variant="ghost" size="sm" asChild>
@@ -292,6 +294,7 @@ export default function VendorsPage() {
                   setPayForm({
                     amount: '',
                     project: '',
+                    category: 'Miscellaneous',
                     date: new Date().toISOString().slice(0, 10),
                     notes: '',
                   })
@@ -325,6 +328,19 @@ export default function VendorsPage() {
                 className="rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm text-white focus:outline-none"
                 placeholder="Amount (e.g. 1234.56)"
               />
+
+              <select
+                required
+                value={payForm.category}
+                onChange={(e) => setPayForm((f) => ({ ...f, category: e.target.value }))}
+                className="rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm text-white focus:outline-none"
+              >
+                <option value="Labor">Labor</option>
+                <option value="Material">Material</option>
+                <option value="Equipment">Equipment</option>
+                <option value="Transport">Transport</option>
+                <option value="Miscellaneous">Miscellaneous</option>
+              </select>
 
               <input
                 type="date"

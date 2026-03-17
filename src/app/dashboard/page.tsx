@@ -16,6 +16,7 @@ export default function DashboardHome() {
           projectName?: string
           expenseTotal: number
           paymentTotal: number
+          billTotal: number
         }>
       }
     | null
@@ -34,6 +35,7 @@ export default function DashboardHome() {
         projectName?: string
         expenseTotal: number
         paymentTotal: number
+        billTotal: number
       }>
     }>('/api/reports/dashboard', {
       token,
@@ -85,6 +87,7 @@ export default function DashboardHome() {
                   <th className="px-4 py-3">Project</th>
                   <th className="px-4 py-3">Expenses</th>
                   <th className="px-4 py-3">Payment Received</th>
+                  <th className="px-4 py-3">Total Bills</th>
                 </tr>
               </thead>
               <tbody>
@@ -93,6 +96,7 @@ export default function DashboardHome() {
                     <td className="px-4 py-4">{project.projectName || 'Unknown'}</td>
                     <td className="px-4 py-4">₹{Math.round(project.expenseTotal).toLocaleString('en-IN')}</td>
                     <td className="px-4 py-4">₹{Math.round(project.paymentTotal).toLocaleString('en-IN')}</td>
+                    <td className="px-4 py-4">₹{Math.round(project.billTotal || 0).toLocaleString('en-IN')}</td>
                   </tr>
                 ))}
               </tbody>

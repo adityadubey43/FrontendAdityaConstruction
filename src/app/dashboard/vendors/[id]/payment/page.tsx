@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 import { apiFetch } from '@/lib/api'
-import { ArrowLeft, DollarSign, Save } from 'lucide-react'
+import { ArrowLeft, Banknote, Save } from 'lucide-react'
 import Link from 'next/link'
 
 interface Vendor {
@@ -28,6 +28,7 @@ export default function RecordPaymentPage() {
   const [formData, setFormData] = useState({
     amount: '',
     method: 'cash' as 'cash' | 'check' | 'bank_transfer' | 'credit_card',
+    category: 'Miscellaneous' as 'Labor' | 'Material' | 'Equipment' | 'Transport' | 'Miscellaneous',
     projectId: '',
     date: new Date().toISOString().split('T')[0]
   })
@@ -101,9 +102,9 @@ export default function RecordPaymentPage() {
 
       <form onSubmit={handleSubmit} className="max-w-md space-y-6">
         <div className="space-y-2">
-          <Label htmlFor="amount">Amount *</Label>
+          <Label htmlFor="amount">Amount (₹) *</Label>
           <div className="relative">
-            <DollarSign className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
+            <Banknote className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
             <Input
               id="amount"
               type="number"
@@ -131,6 +132,25 @@ export default function RecordPaymentPage() {
                 <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
                 <SelectItem value="UPI">UPI</SelectItem>
                 <SelectItem value="Cheque">Cheque</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="category">Category *</Label>
+          <Select
+            value={formData.category}
+            onValueChange={(value: string) => setFormData(prev => ({ ...prev, category: value as 'Labor' | 'Material' | 'Equipment' | 'Transport' | 'Miscellaneous' }))}
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+                <SelectItem value="Labor">Labor</SelectItem>
+                <SelectItem value="Material">Material</SelectItem>
+                <SelectItem value="Equipment">Equipment</SelectItem>
+                <SelectItem value="Transport">Transport</SelectItem>
+                <SelectItem value="Miscellaneous">Miscellaneous</SelectItem>
             </SelectContent>
           </Select>
         </div>

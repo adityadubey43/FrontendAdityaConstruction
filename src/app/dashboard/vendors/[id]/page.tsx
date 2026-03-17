@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { apiFetch } from '@/lib/api'
-import { ArrowLeft, Edit, Trash2, DollarSign, Calendar, Phone, Mail, MapPin } from 'lucide-react'
+import { ArrowLeft, Edit, Trash2, Banknote, Calendar, Phone, Mail, MapPin } from 'lucide-react'
 import Link from 'next/link'
 
 interface Vendor {
@@ -179,13 +179,13 @@ export default function VendorDetailPage() {
               <h2 className="text-lg font-semibold text-white">Payment Summary</h2>
               <Button asChild>
                 <Link href={`/dashboard/vendors/${vendor._id}/payment`}>
-                  <DollarSign className="mr-2 h-4 w-4" />
+                  <Banknote className="mr-2 h-4 w-4" />
                   Record Payment
                 </Link>
               </Button>
             </div>
             <div className="text-3xl font-bold text-white">
-              ${vendor.totalPaid.toLocaleString()}
+              ₹{vendor.totalPaid.toLocaleString()}
             </div>
             <p className="text-white/60">Total Paid</p>
           </div>
@@ -206,7 +206,7 @@ export default function VendorDetailPage() {
                   {vendor.paymentHistory.slice(0, 5).map((payment) => (
                     <TableRow key={payment._id}>
                       <TableCell>{new Date(payment.date).toLocaleDateString()}</TableCell>
-                      <TableCell>${payment.amount.toLocaleString()}</TableCell>
+                      <TableCell>₹{payment.amount.toLocaleString()}</TableCell>
                       <TableCell className="capitalize">{payment.method}</TableCell>
                       <TableCell>{payment.projectName}</TableCell>
                     </TableRow>

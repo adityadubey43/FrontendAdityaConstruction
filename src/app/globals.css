@@ -40,3 +40,21 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.10);
   backdrop-filter: blur(14px);
 }
+
+/* Keep native select dropdowns dark in the dashboard */
+select {
+  background: rgba(255, 255, 255, 0.06);
+  color: white;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+select option {
+  background: rgba(24, 24, 27, 0.98);
+  color: white;
+}
+
+select option:hover {
+  background: rgba(255, 255, 255, 0.12);
+}

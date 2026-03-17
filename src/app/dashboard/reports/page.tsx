@@ -10,6 +10,7 @@ type ProjectSummary = {
   projectName?: string
   expenseTotal: number
   paymentTotal: number
+  billTotal: number
 }
 
 type ReportsData = {
@@ -144,6 +145,7 @@ export default function ReportsPage() {
                       <th className="px-4 py-3">Project</th>
                       <th className="px-4 py-3">Expenses</th>
                       <th className="px-4 py-3">Payment Received</th>
+                      <th className="px-4 py-3">Total Bills</th>
                       <th className="px-4 py-3">Net</th>
                     </tr>
                   </thead>
@@ -153,6 +155,7 @@ export default function ReportsPage() {
                         <td className="px-4 py-4">{proj.projectName ?? 'Unknown'}</td>
                         <td className="px-4 py-4">₹{proj.expenseTotal.toLocaleString('en-IN')}</td>
                         <td className="px-4 py-4">₹{proj.paymentTotal.toLocaleString('en-IN')}</td>
+                        <td className="px-4 py-4">₹{(proj.billTotal || 0).toLocaleString('en-IN')}</td>
                         <td className="px-4 py-4">₹{(proj.paymentTotal - proj.expenseTotal).toLocaleString('en-IN')}</td>
                       </tr>
                     ))}
@@ -214,7 +217,7 @@ export default function ReportsPage() {
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="text-sm font-medium">${vendor.totalPaid.toLocaleString()}</div>
+                          <div className="text-sm font-medium">₹{vendor.totalPaid.toLocaleString()}</div>
                           <div className="text-xs text-white/60">{vendor.paymentCount} payments</div>
                         </div>
                       </div>

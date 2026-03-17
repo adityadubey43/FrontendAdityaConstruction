@@ -122,7 +122,7 @@ export default function ProjectsPage() {
                 <th className="px-4 py-3">Client</th>
                 <th className="px-4 py-3">Status</th>
                 <th className="px-4 py-3">Progress</th>
-                <th className="px-4 py-3">Budget</th>
+                <th className="px-4 py-3">Estimate</th>
                 <th className="px-4 py-3">Actions</th>
               </tr>
             </thead>
@@ -228,7 +228,7 @@ function ProjectModal({
     setError('')
 
     try {
-      const method = editing ? 'PATCH' : 'POST'
+      const method: 'POST' | 'PATCH' = editing ? 'PATCH' : 'POST'
       const url = editing ? `/api/projects/${editing._id}` : '/api/projects'
       await apiFetch<Project>(url, { token, method, body: form })
       onSaved()
@@ -277,13 +277,18 @@ function ProjectModal({
               className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white focus:outline-none"
               placeholder="Location"
             />
-            <input
-              value={form.budget ?? ''}
-              onChange={(e) => setForm((f) => ({ ...f, budget: Number(e.target.value) }))}
-              className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white focus:outline-none"
-              placeholder="Budget"
-              type="number"
-            />
+            <div className="relative">
+              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-white/60">₹</span>
+              <input
+                value={form.budget ?? ''}
+                onChange={(e) => setForm((f) => ({ ...f, budget: Number(e.target.value) }))}
+                className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 pl-10 text-sm text-white focus:outline-none"
+                placeholder="Estimate"
+                inputMode="numeric"
+                type="number"
+                min={0}
+              />
+            </div>
           </div>
 
           <div className="grid gap-3 md:grid-cols-3">

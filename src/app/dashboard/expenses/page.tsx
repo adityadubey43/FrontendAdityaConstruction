@@ -32,6 +32,7 @@ export default function ExpensesPage() {
   const [showModal, setShowModal] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [projectFilter, setProjectFilter] = useState<string>('all')
   const [form, setForm] = useState<{
     title: string
     amount: string
@@ -107,6 +108,13 @@ export default function ExpensesPage() {
     }
   }
 
+  const filteredExpenses = expenses.filter((exp) => {
+    if (projectFilter === 'all') return true
+    return exp.project?._id === projectFilter
+  })
+
+  const totalExpenses = filteredExpenses.reduce((sum, exp) => sum + Number(exp.amount), 0)
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -114,19 +122,51 @@ export default function ExpensesPage() {
           <div className="text-xl font-semibold">Expenses</div>
           <div className="mt-2 text-xs text-white/60">Track all project expenses here.</div>
         </div>
-        <Button onClick={() => setShowModal(true)} className="inline-flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          Add record
-        </Button>
+        <div className="flex items-center gap-4">
+          <select
+            value={projectFilter}
+            onChange={(e) => setProjectFilter(e.target.value)}
+            className="rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm text-white focus:outline-none"
+          >
+            <option value="all">All Projects</option>
+            {projects.map((project) => (
+              <option key={project._id} value={project._id}>
+                {project.projectName}
+              </option>
+            ))}
+          </select>
+          <Button onClick={() => setShowModal(true)} className="inline-flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            Add record
+          </Button>
+        </div>
       </div>
 
       {error && <div className="text-sm text-red-300">{error}</div>}
 
+      {filteredExpenses.length > 0 && (
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-sm text-white/60">
+                {projectFilter === 'all' ? 'Total Expenses (All Projects)' : `Total Expenses (${projects.find(p => p._id === projectFilter)?.projectName})`}
+              </div>
+              <div className="text-2xl font-bold text-white">₹{totalExpenses.toLocaleString()}</div>
+            </div>
+            <div className="text-sm text-white/60">
+              {filteredExpenses.length} expense{filteredExpenses.length !== 1 ? 's' : ''}
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="glass rounded-3xl p-6">
         {loading ? (
           <div className="h-48 animate-pulse" />
-        ) : expenses.length === 0 ? (
-          <div className="text-sm text-white/60">No expenses recorded yet.</div>
+        ) : filteredExpenses.length === 0 ? (
+          <div className="text-sm text-white/60">
+            {projectFilter === 'all' ? 'No expenses recorded yet.' : 'No expenses found for the selected project.'}
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[720px] text-left">
@@ -143,7 +183,7 @@ export default function ExpensesPage() {
                 </tr>
               </thead>
               <tbody>
-                {expenses.map((exp) => (
+                {filteredExpenses.map((exp) => (
                   <tr key={exp._id} className="border-b border-white/10 hover:bg-white/5">
                     <td className="px-4 py-4">{exp.project?.projectName ?? '—'}</td>
                     <td className="px-4 py-4">{exp.vendor ? `${exp.vendor.vendorName} (${exp.vendor.companyName})` : '—'}</td>
