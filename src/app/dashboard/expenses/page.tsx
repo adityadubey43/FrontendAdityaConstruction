@@ -33,6 +33,7 @@ export default function ExpensesPage() {
   const [isEditing, setIsEditing] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [projectFilter, setProjectFilter] = useState<string>('all')
+  const [categoryFilter, setCategoryFilter] = useState<string>('all')
   const [form, setForm] = useState<{
     title: string
     amount: string
@@ -109,8 +110,9 @@ export default function ExpensesPage() {
   }
 
   const filteredExpenses = expenses.filter((exp) => {
-    if (projectFilter === 'all') return true
-    return exp.project?._id === projectFilter
+    const projectMatches = projectFilter === 'all' || exp.project?._id === projectFilter
+    const categoryMatches = categoryFilter === 'all' || exp.category === categoryFilter
+    return projectMatches && categoryMatches
   })
 
   const totalExpenses = filteredExpenses.reduce((sum, exp) => sum + Number(exp.amount), 0)
@@ -135,6 +137,18 @@ export default function ExpensesPage() {
               </option>
             ))}
           </select>
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            className="rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm text-white focus:outline-none"
+          >
+            <option value="all">All Categories</option>
+            <option value="Labor">Labor</option>
+            <option value="Material">Material</option>
+            <option value="Equipment">Equipment</option>
+            <option value="Transport">Transport</option>
+            <option value="Miscellaneous">Miscellaneous</option>
+          </select>
           <Button onClick={() => setShowModal(true)} className="inline-flex items-center gap-2">
             <Plus className="h-4 w-4" />
             Add record
@@ -149,7 +163,9 @@ export default function ExpensesPage() {
           <div className="flex items-center justify-between">
             <div>
               <div className="text-sm text-white/60">
-                {projectFilter === 'all' ? 'Total Expenses (All Projects)' : `Total Expenses (${projects.find(p => p._id === projectFilter)?.projectName})`}
+                {projectFilter === 'all' && categoryFilter === 'all'
+                  ? 'Total Expenses'
+                  : `Total Expenses (${projectFilter !== 'all' ? projects.find(p => p._id === projectFilter)?.projectName : ''}${projectFilter !== 'all' && categoryFilter !== 'all' ? ', ' : ''}${categoryFilter !== 'all' ? categoryFilter : ''})`.replace(/^.*\(,/, '(').replace(/, \)/, ')')}
               </div>
               <div className="text-2xl font-bold text-white">₹{totalExpenses.toLocaleString()}</div>
             </div>
@@ -165,7 +181,9 @@ export default function ExpensesPage() {
           <div className="h-48 animate-pulse" />
         ) : filteredExpenses.length === 0 ? (
           <div className="text-sm text-white/60">
-            {projectFilter === 'all' ? 'No expenses recorded yet.' : 'No expenses found for the selected project.'}
+            {projectFilter === 'all' && categoryFilter === 'all'
+              ? 'No expenses recorded yet.'
+              : 'No expenses found for the selected filters.'}
           </div>
         ) : (
           <div className="overflow-x-auto">
