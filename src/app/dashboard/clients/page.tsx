@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { apiFetch } from '@/lib/api'
 import { ChevronDown, Eye, Briefcase } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { DateRangeFilter } from '@/components/ui/date-range-filter'
 
 type ProjectDetail = {
   projectId: string
@@ -32,14 +33,21 @@ export default function ClientsPage() {
   const [selectedClient, setSelectedClient] = useState<ClientSummary | null>(null)
   const [showDetailsModal, setShowDetailsModal] = useState(false)
 
+  const [fromDate, setFromDate] = useState<string | undefined>(undefined)
+  const [toDate, setToDate] = useState<string | undefined>(undefined)
+
   const token = typeof window !== 'undefined' ? localStorage.getItem('acls_token') || '' : ''
 
   useEffect(() => {
-    apiFetch<{ clientSummaries: ClientSummary[] }>('/api/reports/client-summary', { token })
+    const params = new URLSearchParams()
+    if (fromDate) params.set('from', fromDate)
+    if (toDate) params.set('to', toDate)
+
+    apiFetch<{ clientSummaries: ClientSummary[] }>(`/api/reports/client-summary?${params.toString()}`, { token })
       .then((data) => setClients(data.clientSummaries || []))
       .catch((e) => setError(e instanceof Error ? e.message : 'Failed to load clients'))
       .finally(() => setLoading(false))
-  }, [token])
+  }, [token, fromDate, toDate])
 
   const openDetails = (client: ClientSummary) => {
     setSelectedClient(client)
@@ -53,15 +61,29 @@ export default function ClientsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
           <div className="text-2xl font-bold">Clients</div>
           <div className="mt-1 text-sm text-white/60">
             Manage client billing and project tracking
           </div>
         </div>
-        <div className="flex gap-2 text-sm text-white/60">
-          <span>Total Clients: <span className="font-semibold text-white">{clients.length}</span></span>
+
+        <div className="flex items-center gap-4">
+          <DateRangeFilter
+            label="Date range"
+            from={fromDate}
+            to={toDate}
+            onChange={({ from, to }) => {
+              setFromDate(from)
+              setToDate(to)
+            }}
+          />
+          <div className="flex gap-2 text-sm text-white/60">
+            <span>
+              Total Clients: <span className="font-semibold text-white">{clients.length}</span>
+            </span>
+          </div>
         </div>
       </div>
 

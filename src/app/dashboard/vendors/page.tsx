@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { apiFetch } from '@/lib/api'
 import { Plus, Search, Edit, Trash2, Eye } from 'lucide-react'
 import Link from 'next/link'
+import { DateRangeFilter } from '@/components/ui/date-range-filter'
 
 interface Vendor {
   _id: string
@@ -53,12 +54,14 @@ export default function VendorsPage() {
   const [vendors, setVendors] = useState<Vendor[]>([])
   const [search, setSearch] = useState('')
   const [typeFilter, setTypeFilter] = useState('all')
+  const [fromDate, setFromDate] = useState<string | undefined>(undefined)
+  const [toDate, setToDate] = useState<string | undefined>(undefined)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     fetchVendors()
     fetchProjects()
-  }, [])
+  }, [fromDate, toDate])
 
   const fetchProjects = async () => {
     try {
@@ -72,7 +75,10 @@ export default function VendorsPage() {
   const fetchVendors = async () => {
     setLoading(true)
     try {
-      const data = await apiFetch<Vendor[]>('/api/vendors')
+      const params = new URLSearchParams()
+      if (fromDate) params.set('from', fromDate)
+      if (toDate) params.set('to', toDate)
+      const data = await apiFetch<Vendor[]>(`/api/vendors?${params.toString()}`)
       setVendors(data)
     } catch (error) {
       console.error('Failed to fetch vendors:', error)
@@ -157,15 +163,20 @@ export default function VendorsPage() {
           <h1 className="text-2xl font-bold text-white">Vendors</h1>
           <p className="text-white/60">Manage your construction vendors and suppliers</p>
         </div>
-        <Button asChild>
-          <Link href="/dashboard/vendors/new">
-            <Plus className="mr-2 h-4 w-4" />
-            Add Vendor
-          </Link>
-        </Button>
+        <div className="flex items-center gap-4">
+          <DateRangeFilter
+            label="Date range"
+            from={fromDate}
+            to={toDate}
+            onChange={({ from, to }) => {
+              setFromDate(from)
+              setToDate(to)
+            }}
+          />
+        </div>
       </div>
 
-      <div className="flex gap-4">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
           <Input
@@ -194,18 +205,24 @@ export default function VendorsPage() {
       </div>
 
       <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Contact</TableHead>
-              <TableHead>Projects</TableHead>
-              <TableHead>Total Paid</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
+        {filteredVendors.length === 0 ? (
+          <div className="py-12 text-center text-white/60">
+            No vendors found matching your criteria.
+          </div>
+        ) : (
+          <div className="overflow-x-auto max-h-96 overflow-y-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Contact</TableHead>
+                  <TableHead>Projects</TableHead>
+                  <TableHead>Total Paid</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
             {filteredVendors.map((vendor) => (
               <TableRow key={vendor._id}>
                 <TableCell className="font-medium">{vendor.name}</TableCell>
@@ -269,14 +286,19 @@ export default function VendorsPage() {
                 </TableCell>
               </TableRow>
             ))}
-          </TableBody>
-        </Table>
-
-        {filteredVendors.length === 0 && (
-          <div className="py-12 text-center text-white/60">
-            No vendors found matching your criteria.
+              </TableBody>
+            </Table>
           </div>
         )}
+
+        <div className="mt-4 flex justify-end">
+          <Button asChild>
+            <Link href="/dashboard/vendors/new">
+              <Plus className="mr-2 h-4 w-4" />
+              Add Vendor
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {showPayModal && payingVendor && (

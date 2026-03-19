@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { Plus, Edit } from 'lucide-react'
 import { apiFetch } from '@/lib/api'
 import { Button } from '@/components/ui/button'
+import { DateRangeFilter } from '@/components/ui/date-range-filter'
 
 type Project = { _id: string; projectName: string }
 
@@ -27,6 +28,8 @@ export default function PaymentsPage() {
   const [showModal, setShowModal] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [fromDate, setFromDate] = useState<string | undefined>(undefined)
+  const [toDate, setToDate] = useState<string | undefined>(undefined)
   const [form, setForm] = useState<Partial<Payment>>({
     title: '',
     amount: '',
@@ -40,8 +43,11 @@ export default function PaymentsPage() {
 
   useEffect(() => {
     setLoading(true)
+    const params = new URLSearchParams()
+    if (fromDate) params.set('from', fromDate)
+    if (toDate) params.set('to', toDate)
     Promise.all([
-      apiFetch<Payment[]>('/api/payments', { token }),
+      apiFetch<Payment[]>(`/api/payments?${params.toString()}`, { token }),
       apiFetch<Project[]>('/api/projects', { token }),
     ])
       .then(([paymentsData, projectsData]) => {
@@ -50,7 +56,7 @@ export default function PaymentsPage() {
       })
       .catch((e) => setError(e instanceof Error ? e.message : 'Failed to load payments'))
       .finally(() => setLoading(false))
-  }, [token])
+  }, [token, fromDate, toDate])
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -100,10 +106,17 @@ export default function PaymentsPage() {
           <div className="text-xl font-semibold">Payments Received</div>
           <div className="mt-2 text-xs text-white/60">Track payments received from clients per project.</div>
         </div>
-        <Button onClick={() => setShowModal(true)} className="inline-flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          Add payment received
-        </Button>
+        <div className="flex items-center gap-4">
+          <DateRangeFilter
+            label="Date range"
+            from={fromDate}
+            to={toDate}
+            onChange={({ from, to }) => {
+              setFromDate(from)
+              setToDate(to)
+            }}
+          />
+        </div>
       </div>
 
       {error && <div className="text-sm text-red-300">{error}</div>}
@@ -114,7 +127,7 @@ export default function PaymentsPage() {
         ) : payments.length === 0 ? (
           <div className="text-sm text-white/60">No payments received recorded yet.</div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto max-h-80 overflow-y-auto">
             <table className="w-full min-w-[720px] text-left">
               <thead className="border-b border-white/10 text-xs uppercase tracking-wide text-white/60">
                 <tr>
@@ -164,6 +177,12 @@ export default function PaymentsPage() {
             </table>
           </div>
         )}
+        <div className="mt-4 flex justify-end">
+          <Button onClick={() => setShowModal(true)} className="inline-flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            Add payment received
+          </Button>
+        </div>
       </div>
 
       {showModal && (

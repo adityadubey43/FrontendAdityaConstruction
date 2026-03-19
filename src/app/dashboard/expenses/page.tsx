@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { Plus, Edit } from 'lucide-react'
 import { apiFetch } from '@/lib/api'
 import { Button } from '@/components/ui/button'
+import { DateRangeFilter } from '@/components/ui/date-range-filter'
 
 type Project = { _id: string; projectName: string }
 
@@ -34,6 +35,17 @@ export default function ExpensesPage() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [projectFilter, setProjectFilter] = useState<string>('all')
   const [categoryFilter, setCategoryFilter] = useState<string>('all')
+  const [fromDate, setFromDate] = useState<string | undefined>(undefined)
+  const [toDate, setToDate] = useState<string | undefined>(undefined)
+
+  const sortExpensesByDateDesc = (items: Expense[]) => {
+    return [...items].sort((a, b) => {
+      const aTime = a.date ? new Date(a.date).getTime() : 0
+      const bTime = b.date ? new Date(b.date).getTime() : 0
+      return bTime - aTime
+    })
+  }
+
   const [form, setForm] = useState<{
     title: string
     amount: string
@@ -54,19 +66,24 @@ export default function ExpensesPage() {
 
   useEffect(() => {
     setLoading(true)
+    const params = new URLSearchParams()
+    if (projectFilter !== 'all') params.set('projectId', projectFilter)
+    if (fromDate) params.set('from', fromDate)
+    if (toDate) params.set('to', toDate)
+
     Promise.all([
-      apiFetch<Expense[]>('/api/expenses', { token }),
+      apiFetch<Expense[]>(`/api/expenses?${params.toString()}`, { token }),
       apiFetch<Project[]>('/api/projects', { token }),
       apiFetch<Vendor[]>('/api/vendors', { token }),
     ])
       .then(([expensesData, projectsData, vendorsData]) => {
-        setExpenses(expensesData)
+        setExpenses(sortExpensesByDateDesc(expensesData))
         setProjects(projectsData)
         setVendors(vendorsData)
       })
       .catch((e) => setError(e instanceof Error ? e.message : 'Failed to load expenses'))
       .finally(() => setLoading(false))
-  }, [token])
+  }, [token, projectFilter, fromDate, toDate])
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -85,14 +102,14 @@ export default function ExpensesPage() {
           method: 'PATCH',
           body,
         })
-        setExpenses((prev) => prev.map((exp) => (exp._id === editingId ? updated : exp)))
+        setExpenses((prev) => sortExpensesByDateDesc(prev.map((exp) => (exp._id === editingId ? updated : exp))))
       } else {
         const created = await apiFetch<Expense>('/api/expenses', {
           token,
           method: 'POST',
           body,
         })
-        setExpenses((prev) => [created, ...prev])
+        setExpenses((prev) => sortExpensesByDateDesc([created, ...prev]))
       }
       setShowModal(false)
       setIsEditing(false)
@@ -125,42 +142,49 @@ export default function ExpensesPage() {
           <div className="mt-2 text-xs text-white/60">Track all project expenses here.</div>
         </div>
         <div className="flex items-center gap-4">
-          <select
-            value={projectFilter}
-            onChange={(e) => setProjectFilter(e.target.value)}
-            className="rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm text-white focus:outline-none"
-          >
-            <option value="all">All Projects</option>
-            {projects.map((project) => (
-              <option key={project._id} value={project._id}>
-                {project.projectName}
-              </option>
-            ))}
-          </select>
-          <select
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-            className="rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm text-white focus:outline-none"
-          >
-            <option value="all">All Categories</option>
-            <option value="Labor">Labor</option>
-            <option value="Material">Material</option>
-            <option value="Equipment">Equipment</option>
-            <option value="Transport">Transport</option>
-            <option value="Miscellaneous">Miscellaneous</option>
-          </select>
-          <Button onClick={() => setShowModal(true)} className="inline-flex items-center gap-2">
-            <Plus className="h-4 w-4" />
-            Add record
-          </Button>
+          <DateRangeFilter
+            label="Date range"
+            from={fromDate}
+            to={toDate}
+            onChange={({ from, to }) => {
+              setFromDate(from)
+              setToDate(to)
+            }}
+          />
         </div>
       </div>
 
       {error && <div className="text-sm text-red-300">{error}</div>}
 
-      {filteredExpenses.length > 0 && (
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-          <div className="flex items-center justify-between">
+      <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-4">
+            <select
+              value={projectFilter}
+              onChange={(e) => setProjectFilter(e.target.value)}
+              className="rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm text-white focus:outline-none"
+            >
+              <option value="all">All Projects</option>
+              {projects.map((project) => (
+                <option key={project._id} value={project._id}>
+                  {project.projectName}
+                </option>
+              ))}
+            </select>
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm text-white focus:outline-none"
+            >
+              <option value="all">All Categories</option>
+              <option value="Labor">Labor</option>
+              <option value="Material">Material</option>
+              <option value="Equipment">Equipment</option>
+              <option value="Transport">Transport</option>
+              <option value="Miscellaneous">Miscellaneous</option>
+            </select>
+          </div>
+          <div className="flex items-center justify-between md:justify-end md:gap-8">
             <div>
               <div className="text-sm text-white/60">
                 {projectFilter === 'all' && categoryFilter === 'all'
@@ -174,7 +198,7 @@ export default function ExpensesPage() {
             </div>
           </div>
         </div>
-      )}
+      </div>
 
       <div className="glass rounded-3xl p-6">
         {loading ? (
@@ -186,7 +210,7 @@ export default function ExpensesPage() {
               : 'No expenses found for the selected filters.'}
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto max-h-96 overflow-y-auto">
             <table className="w-full min-w-[720px] text-left">
               <thead className="border-b border-white/10 text-xs uppercase tracking-wide text-white/60">
                 <tr>
@@ -237,6 +261,12 @@ export default function ExpensesPage() {
             </table>
           </div>
         )}
+        <div className="mt-4 flex justify-end">
+          <Button onClick={() => setShowModal(true)} className="inline-flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            Add record
+          </Button>
+        </div>
       </div>
 
       {showModal && (

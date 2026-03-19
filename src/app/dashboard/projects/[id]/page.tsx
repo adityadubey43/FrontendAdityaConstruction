@@ -1,11 +1,12 @@
 "use client"
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { apiFetch } from '@/lib/api'
 import { ArrowLeft, FileText, ListChecks, Clock, Users, DollarSign, Plus, Truck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts'
 
 type ProjectStatus = 'Planning' | 'In Progress' | 'On Hold' | 'Completed'
 
@@ -96,7 +97,7 @@ export default function ProjectDetailPage() {
   const [bills, setBills] = useState<Bill[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [tab, setTab] = useState<'overview' | 'team' | 'vendors' | 'tasks' | 'timeline' | 'docs' | 'expenses' | 'bills'>('overview')
+  const [tab, setTab] = useState<'overview' | 'team' | 'vendors' | 'tasks' | 'timeline' | 'docs' | 'expenses' | 'bills' | 'financials'>('overview')
   const [showExpenseModal, setShowExpenseModal] = useState(false)
   const [showTeamModal, setShowTeamModal] = useState(false)
   const [showBillModal, setShowBillModal] = useState(false)
@@ -110,6 +111,20 @@ export default function ProjectDetailPage() {
     ...expenses.map(e => ({ ...e, transactionType: 'expense' as const })),
     ...payments.map(p => ({ ...p, transactionType: 'payment' as const })),
   ].sort((a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime())
+
+  const expenseByCategory = useMemo(() => {
+    const categoryMap: Record<string, number> = {}
+    expenses.forEach(expense => {
+      const category = expense.category || 'Miscellaneous'
+      categoryMap[category] = (categoryMap[category] || 0) + (expense.amount ?? 0)
+    })
+    return Object.entries(categoryMap).map(([name, value]) => ({
+      name,
+      value: Math.round(value),
+    }))
+  }, [expenses])
+
+  const COLORS = ['#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#06b6d4', '#3b82f6', '#6366f1', '#f97316']
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('acls_token') || '' : ''
 
@@ -138,6 +153,7 @@ export default function ProjectDetailPage() {
 
   const tabButtons = [
     { key: 'overview', label: 'Overview', icon: Clock },
+    { key: 'financials', label: 'Financial Reports', icon: DollarSign },
     { key: 'team', label: 'Team', icon: Users },
     { key: 'vendors', label: 'Vendors', icon: Truck },
     { key: 'tasks', label: 'Tasks', icon: ListChecks },
@@ -239,6 +255,92 @@ export default function ProjectDetailPage() {
           </div>
         )}
 
+        {tab === 'financials' && (
+          <div className="space-y-6">
+            <div className="text-sm font-semibold mb-4">Financial Reports</div>
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="glass rounded-2xl p-4">
+                <div className="text-xs text-white/60">Project Budget</div>
+                <div className="mt-2 text-2xl font-bold">₹{(project.budget ?? 0).toLocaleString('en-IN')}</div>
+              </div>
+              <div className="glass rounded-2xl p-4">
+                <div className="text-xs text-white/60">Project Expenses</div>
+                <div className="mt-2 text-2xl font-bold">₹{Math.round(totalExpenses).toLocaleString('en-IN')}</div>
+              </div>
+              <div className="glass rounded-2xl p-4">
+                <div className="text-xs text-white/60">Remaining Budget</div>
+                <div className={`mt-2 text-2xl font-bold ${((project.budget ?? 0) - totalExpenses) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                  ₹{Math.round((project.budget ?? 0) - totalExpenses).toLocaleString('en-IN')}
+                </div>
+              </div>
+              <div className="glass rounded-2xl p-4">
+                <div className="text-xs text-white/60">Expense Ratio</div>
+                <div className="mt-2 text-2xl font-bold">{((totalExpenses / (project.budget ?? 1)) * 100).toFixed(1)}%</div>
+              </div>
+              <div className="glass rounded-2xl p-4">
+                <div className="text-xs text-white/60">Vendor Payments</div>
+                <div className="mt-2 text-2xl font-bold">₹{Math.round(totalPayments).toLocaleString('en-IN')}</div>
+              </div>
+              <div className="glass rounded-2xl p-4">
+                <div className="text-xs text-white/60">Progress</div>
+                <div className="mt-2 text-2xl font-bold">{project.progress}%</div>
+              </div>
+            </div>
+            <div className="glass rounded-2xl p-4">
+              <div className="text-sm font-semibold mb-3">Summary</div>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between border-b border-white/10 pb-2">
+                  <span className="text-white/60">Total Bills</span>
+                  <span className="font-semibold">₹{Math.round(totalBills).toLocaleString('en-IN')}</span>
+                </div>
+                <div className="flex justify-between border-b border-white/10 pb-2">
+                  <span className="text-white/60">Total Payments Received</span>
+                  <span className="font-semibold">₹{Math.round(totalPayments).toLocaleString('en-IN')}</span>
+                </div>
+                <div className="flex justify-between border-b border-white/10 pb-2">
+                  <span className="text-white/60">Total Expenses</span>
+                  <span className="font-semibold">₹{Math.round(totalExpenses).toLocaleString('en-IN')}</span>
+                </div>
+                <div className="flex justify-between pt-2">
+                  <span className="text-white/60">Net Result</span>
+                  <span className={`font-semibold ${(totalPayments - totalExpenses) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                    ₹{Math.round(totalPayments - totalExpenses).toLocaleString('en-IN')}
+                  </span>
+                </div>
+              </div>
+            </div>
+            {expenseByCategory.length > 0 && (
+              <div className="glass rounded-2xl p-4">
+                <div className="text-sm font-semibold mb-4">Expense Breakdown by Category</div>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={expenseByCategory}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, value }) => `${name}: ₹${value.toLocaleString()}`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {expenseByCategory.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      formatter={(value) => `₹${Number(value).toLocaleString()}`}
+                      contentStyle={{ backgroundColor: '#1b1b1f', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
+                      labelStyle={{ color: '#fff' }}
+                    />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+          </div>
+        )}
+
         {tab === 'team' && (
           <div>
             <div className="flex items-center justify-between">
@@ -252,7 +354,7 @@ export default function ProjectDetailPage() {
                 Manage Team
               </Button>
             </div>
-            <div className="mt-4 grid gap-3">
+            <div className="mt-4 grid gap-3 max-h-80 overflow-y-auto">
               {project.assignedTeam && project.assignedTeam.length > 0 ? (
                 project.assignedTeam.map((member) => (
                   <div key={member._id} className="glass flex items-center justify-between rounded-2xl p-4">
@@ -293,7 +395,7 @@ export default function ProjectDetailPage() {
                 Add Vendor
               </Button>
             </div>
-            <div className="mt-4 grid gap-3">
+            <div className="mt-4 grid gap-3 max-h-80 overflow-y-auto">
               {vendors.length > 0 ? (
                 vendors.map((vendor) => (
                   <div key={vendor._id} className="glass flex items-center justify-between rounded-2xl p-4">
@@ -345,17 +447,7 @@ export default function ProjectDetailPage() {
 
         {tab === 'expenses' && (
           <div>
-            <div className="flex items-center justify-between">
-              <div className="text-sm font-semibold">Transactions</div>
-              <Button
-                variant="secondary"
-                onClick={() => setShowExpenseModal(true)}
-                className="inline-flex items-center gap-2"
-              >
-                <Plus className="h-4 w-4" />
-                Add Transaction
-              </Button>
-            </div>
+            <div className="text-sm font-semibold">Transactions</div>
             <div className="mt-4 grid gap-3 md:grid-cols-3">
               <div className="rounded-2xl bg-white/5 p-4">
                 <div className="text-xs text-white/60">Total Expenses</div>
@@ -374,7 +466,7 @@ export default function ProjectDetailPage() {
               {allTransactions.length === 0 ? (
                 <div className="text-sm text-white/60">No transactions logged for this project.</div>
               ) : (
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto max-h-80 overflow-y-auto">
                   <table className="w-full min-w-[800px] border-collapse text-left">
                     <thead className="border-b border-white/10 text-xs uppercase tracking-wide text-white/60">
                       <tr>
@@ -401,6 +493,16 @@ export default function ProjectDetailPage() {
                   </table>
                 </div>
               )}
+            </div>
+            <div className="mt-4 flex justify-end">
+              <Button
+                variant="secondary"
+                onClick={() => setShowExpenseModal(true)}
+                className="inline-flex items-center gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                Add Transaction
+              </Button>
             </div>
           </div>
         )}
@@ -436,7 +538,7 @@ export default function ProjectDetailPage() {
               {bills.length === 0 ? (
                 <div className="text-sm text-white/60">No bills raised for this project.</div>
               ) : (
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto max-h-80 overflow-y-auto">
                   <table className="w-full min-w-[800px] border-collapse text-left">
                     <thead className="border-b border-white/10 text-xs uppercase tracking-wide text-white/60">
                       <tr>

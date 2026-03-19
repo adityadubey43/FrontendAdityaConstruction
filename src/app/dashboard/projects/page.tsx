@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { apiFetch } from '@/lib/api'
 import { Plus, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { DateRangeFilter } from '@/components/ui/date-range-filter'
 
 type ProjectStatus = 'Planning' | 'In Progress' | 'On Hold' | 'Completed'
 
@@ -17,6 +18,7 @@ type Project = {
   budget?: number
   status: ProjectStatus
   progress: number
+  createdAt?: string
 }
 
 const statusOptions: ProjectStatus[] = ['Planning', 'In Progress', 'On Hold', 'Completed']
@@ -27,6 +29,8 @@ export default function ProjectsPage() {
   const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | ProjectStatus>('all')
+  const [fromDate, setFromDate] = useState<string | undefined>(undefined)
+  const [toDate, setToDate] = useState<string | undefined>(undefined)
   const [showModal, setShowModal] = useState(false)
   const [editing, setEditing] = useState<Project | null>(null)
 
@@ -36,14 +40,17 @@ export default function ProjectsPage() {
     setLoading(true)
     setError(null)
     try {
-      const data = await apiFetch<Project[]>('/api/projects', { token })
+      const params = new URLSearchParams()
+      if (fromDate) params.set('from', fromDate)
+      if (toDate) params.set('to', toDate)
+      const data = await apiFetch<Project[]>(`/api/projects?${params.toString()}`, { token })
       setProjects(data)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load projects')
     } finally {
       setLoading(false)
     }
-  }, [token])
+  }, [token, fromDate, toDate])
 
   useEffect(() => {
     loadProjects()
@@ -61,6 +68,11 @@ export default function ProjectsPage() {
           (p.location ?? '').toLowerCase().includes(lower)
         )
       })
+      .sort((a, b) => {
+        const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0
+        const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0
+        return bTime - aTime // Latest first
+      })
   }, [projects, search, statusFilter])
 
   return (
@@ -70,42 +82,42 @@ export default function ProjectsPage() {
           <div className="text-xl font-semibold">Projects</div>
           <div className="mt-1 text-xs text-white/60">Track progress, timelines, budgets and teams.</div>
         </div>
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-          <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2">
-            <Search className="h-4 w-4 text-white/50" />
-            <input
-              className="w-full bg-transparent text-sm text-white placeholder:text-white/40 focus:outline-none"
-              placeholder="Search projects..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as 'all' | ProjectStatus)}
-            className="rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm text-white focus:outline-none"
-          >
-            <option value="all">All statuses</option>
-            {statusOptions.map((status) => (
-              <option key={status} value={status}>
-                {status}
-              </option>
-            ))}
-          </select>
-          <Button
-            onClick={() => {
-              setEditing(null)
-              setShowModal(true)
-            }}
-            variant="secondary"
-          >
-            <Plus className="h-4 w-4" />
-            New Project
-          </Button>
-        </div>
+        <DateRangeFilter
+          label="Date range"
+          from={fromDate}
+          to={toDate}
+          onChange={({ from, to }) => {
+            setFromDate(from)
+            setToDate(to)
+          }}
+        />
       </header>
 
       {error && <div className="text-sm text-red-300">{error}</div>}
+
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-4">
+        <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2">
+          <Search className="h-4 w-4 text-white/50" />
+          <input
+            className="w-full bg-transparent text-sm text-white placeholder:text-white/40 focus:outline-none"
+            placeholder="Search projects..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value as 'all' | ProjectStatus)}
+          className="rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm text-white focus:outline-none"
+        >
+          <option value="all">All statuses</option>
+          {statusOptions.map((status) => (
+            <option key={status} value={status}>
+              {status}
+            </option>
+          ))}
+        </select>
+      </div>
 
       {loading ? (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -114,7 +126,7 @@ export default function ProjectsPage() {
           ))}
         </div>
       ) : (
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto max-h-96 overflow-y-auto">
           <table className="w-full min-w-[900px] border-collapse text-left">
             <thead className="border-b border-white/10 text-xs uppercase tracking-wide text-white/60">
               <tr>
@@ -180,6 +192,19 @@ export default function ProjectsPage() {
           </table>
         </div>
       )}
+      
+      <div className="mt-4 flex justify-end">
+        <Button
+          onClick={() => {
+            setEditing(null)
+            setShowModal(true)
+          }}
+          className="inline-flex items-center gap-2 bg-yellow-500 hover:bg-yellow-600 text-black font-semibold"
+        >
+          <Plus className="h-4 w-4" />
+          New Project
+        </Button>
+      </div>
 
       {showModal && (
         <ProjectModal

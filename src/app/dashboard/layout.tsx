@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import DashboardSidebar from '@/components/dashboard/DashboardSidebar'
-import DashboardTopbar from '@/components/dashboard/DashboardTopbar'
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
@@ -37,7 +36,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-6 px-4 py-6 md:grid-cols-[minmax(0,auto)_1fr]">
         <DashboardSidebar collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed((v) => !v)} />
         <div className="flex flex-col gap-6">
-          <DashboardTopbar collapsed={sidebarCollapsed} onToggleSidebar={() => setSidebarCollapsed((v) => !v)} />
           <main className="min-h-[70vh] rounded-3xl border border-white/10 bg-white/[0.03] p-6 shadow-soft">
             {children}
           </main>

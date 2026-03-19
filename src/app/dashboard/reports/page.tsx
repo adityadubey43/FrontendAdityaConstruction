@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { apiFetch } from '@/lib/api'
 import { motion } from 'framer-motion'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import { DateRangeFilter } from '@/components/ui/date-range-filter'
 
 type ProjectSummary = {
   projectId: string
@@ -44,6 +45,9 @@ export default function ReportsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  const [fromDate, setFromDate] = useState<string | undefined>(undefined)
+  const [toDate, setToDate] = useState<string | undefined>(undefined)
+
   const [monthlyExpenses, setMonthlyExpenses] = useState<MonthlyExpense[]>([])
   const [monthlyLoading, setMonthlyLoading] = useState(true)
   const [monthlyError, setMonthlyError] = useState<string | null>(null)
@@ -54,36 +58,59 @@ export default function ReportsPage() {
 
   useEffect(() => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('acls_token') || '' : ''
+    const params = new URLSearchParams()
+    if (fromDate) params.set('from', fromDate)
+    if (toDate) params.set('to', toDate)
+
     setLoading(true)
-    apiFetch<ReportsData>('/api/reports/dashboard', { token })
+    apiFetch<ReportsData>(`/api/reports/dashboard?${params.toString()}`, { token })
       .then(setData)
       .catch((e) => setError(e instanceof Error ? e.message : 'Failed to load report data'))
       .finally(() => setLoading(false))
-  }, [])
+  }, [fromDate, toDate])
 
   useEffect(() => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('acls_token') || '' : ''
+    const params = new URLSearchParams()
+    if (fromDate) params.set('from', fromDate)
+    if (toDate) params.set('to', toDate)
+
     setMonthlyLoading(true)
-    apiFetch<MonthlyExpense[]>('/api/reports/monthly-expenses', { token })
+    apiFetch<MonthlyExpense[]>(`/api/reports/monthly-expenses?${params.toString()}`, { token })
       .then(setMonthlyExpenses)
       .catch((e) => setMonthlyError(e instanceof Error ? e.message : 'Failed to load monthly expenses'))
       .finally(() => setMonthlyLoading(false))
-  }, [])
+  }, [fromDate, toDate])
 
   useEffect(() => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('acls_token') || '' : ''
+    const params = new URLSearchParams()
+    if (fromDate) params.set('from', fromDate)
+    if (toDate) params.set('to', toDate)
+
     setVendorLoading(true)
-    apiFetch<VendorAnalytics>('/api/reports/vendor-analytics', { token })
+    apiFetch<VendorAnalytics>(`/api/reports/vendor-analytics?${params.toString()}`, { token })
       .then(setVendorAnalytics)
       .catch((e) => setVendorError(e instanceof Error ? e.message : 'Failed to load vendor analytics'))
       .finally(() => setVendorLoading(false))
-  }, [])
+  }, [fromDate, toDate])
 
   return (
     <div className="space-y-6">
-      <div>
-        <div className="text-xl font-semibold">Reports</div>
-        <div className="mt-2 text-xs text-white/60">Real-time totals and project financial summaries.</div>
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div>
+          <div className="text-xl font-semibold">Reports</div>
+          <div className="mt-2 text-xs text-white/60">Real-time totals and project financial summaries.</div>
+        </div>
+        <DateRangeFilter
+          label="Date range"
+          from={fromDate}
+          to={toDate}
+          onChange={({ from, to }) => {
+            setFromDate(from)
+            setToDate(to)
+          }}
+        />
       </div>
 
       {error && <div className="text-sm text-red-300">{error}</div>}
