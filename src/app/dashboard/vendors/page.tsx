@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -58,21 +58,7 @@ export default function VendorsPage() {
   const [toDate, setToDate] = useState<string | undefined>(undefined)
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    fetchVendors()
-    fetchProjects()
-  }, [fromDate, toDate])
-
-  const fetchProjects = async () => {
-    try {
-      const data = await apiFetch<Array<{ _id: string; projectName: string }>>('/api/projects')
-      setProjects(data)
-    } catch (error) {
-      console.error('Failed to fetch projects:', error)
-    }
-  }
-
-  const fetchVendors = async () => {
+  const fetchVendors = useCallback(async () => {
     setLoading(true)
     try {
       const params = new URLSearchParams()
@@ -85,7 +71,23 @@ export default function VendorsPage() {
     } finally {
       setLoading(false)
     }
+  }, [fromDate, toDate])
+
+  useEffect(() => {
+    fetchVendors()
+    fetchProjects()
+  }, [fetchVendors])
+
+  const fetchProjects = async () => {
+    try {
+      const data = await apiFetch<Array<{ _id: string; projectName: string }>>('/api/projects')
+      setProjects(data)
+    } catch (error) {
+      console.error('Failed to fetch projects:', error)
+    }
   }
+
+
 
   const filteredVendors = vendors.filter((vendor: Vendor) => {
     const matchesSearch = vendor.name.toLowerCase().includes(search.toLowerCase()) ||
