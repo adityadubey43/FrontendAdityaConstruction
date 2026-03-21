@@ -56,13 +56,15 @@ export default function RecordPaymentPage() {
     setLoading(true)
 
     try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('acls_token') || '' : ''
       await apiFetch(`/api/vendors/payment`, {
         method: 'POST',
         body: {
           vendorId: params.id,
           ...formData,
           amount: parseFloat(formData.amount)
-        }
+        },
+        token
       })
       router.push(`/dashboard/vendors/${params.id}`)
     } catch (error) {

@@ -3,13 +3,15 @@ import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { apiFetch } from "@/lib/api";
 
+type Role = 'admin' | 'project_manager' | 'accountant' | 'site_supervisor' | 'sales_crm' | 'vendor' | 'client' | 'user';
+
 type User = {
   _id: string;
   name: string;
   email: string;
   countryCode: string;
   mobilenumber: number;
-  role: string;
+  role: Role;
 };
 
 export default function UsersPage() {
@@ -18,12 +20,12 @@ export default function UsersPage() {
   const [error, setError] = useState("");
   const [showCreate, setShowCreate] = useState(false);
   const [search, setSearch] = useState("");
-  const [roleFilter, setRoleFilter] = useState<'all' | 'admin' | 'user'>('all');
+  const [roleFilter, setRoleFilter] = useState<'all' | Role>('all');
   const [form, setForm] = useState({
     name: "",
     email: "",
     password: "",
-    countryCode: "",
+    countryCode: "+91",
     mobilenumber: "",
     role: "user",
   });
@@ -51,9 +53,11 @@ export default function UsersPage() {
   async function fetchUsers() {
     setLoading(true);
     try {
-      const data = await apiFetch<User[]>("/api/users");
+      const token = typeof window !== 'undefined' ? localStorage.getItem('acls_token') || '' : ''
+      const data = await apiFetch<User[]>("/api/users", { token });
       setUsers(data);
-    } catch {
+    } catch (err) {
+      console.error('Failed to fetch users:', err)
       setError("Failed to fetch users");
     } finally {
       setLoading(false);
@@ -65,12 +69,14 @@ export default function UsersPage() {
     setCreating(true);
     setError("");
     try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('acls_token') || '' : ''
       await apiFetch("/api/users", {
         method: "POST",
         body: form,
+        token,
       });
       setShowCreate(false);
-      setForm({ name: "", email: "", password: "", countryCode: "", mobilenumber: "", role: "user" });
+      setForm({ name: "", email: "", password: "", countryCode: "+91", mobilenumber: "", role: "user" });
       fetchUsers();
     } catch {
       setError("Failed to create user");
@@ -82,7 +88,8 @@ export default function UsersPage() {
   async function handleDelete(id: string) {
     if (!window.confirm("Delete this user?")) return;
     try {
-      await apiFetch(`/api/users/${id}`, { method: "DELETE" });
+      const token = typeof window !== 'undefined' ? localStorage.getItem('acls_token') || '' : ''
+      await apiFetch(`/api/users/${id}`, { method: "DELETE", token });
       fetchUsers();
     } catch {
       setError("Failed to delete user");
@@ -96,9 +103,11 @@ export default function UsersPage() {
     }
 
     try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('acls_token') || '' : ''
       await apiFetch(`/api/users/${id}`, {
         method: "PATCH",
         body: { role: updateRole[id] },
+        token,
       });
       setUpdatingId(null);
       fetchUsers();
@@ -137,11 +146,17 @@ export default function UsersPage() {
           </div>
           <select
             value={roleFilter}
-            onChange={(e) => setRoleFilter(e.target.value as 'all' | 'admin' | 'user')}
+            onChange={(e) => setRoleFilter(e.target.value as 'all' | Role)}
             className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:outline-none"
           >
             <option value="all">All roles</option>
             <option value="admin">Admin</option>
+            <option value="project_manager">Project Manager</option>
+            <option value="accountant">Accountant</option>
+            <option value="site_supervisor">Site Supervisor</option>
+            <option value="sales_crm">Sales / CRM</option>
+            <option value="vendor">Vendor</option>
+            <option value="client">Client</option>
             <option value="user">Staff</option>
           </select>
           {currentUserRole === 'admin' ? (
@@ -174,9 +189,15 @@ export default function UsersPage() {
                 <input className="p-2 rounded border bg-[#18181b] text-white w-1/3" required placeholder="Country Code" value={form.countryCode} onChange={e => setForm(f => ({ ...f, countryCode: e.target.value }))} />
                 <input className="p-2 rounded border bg-[#18181b] text-white w-2/3" required placeholder="Mobile Number" type="tel" value={form.mobilenumber} onChange={e => setForm(f => ({ ...f, mobilenumber: e.target.value }))} />
               </div>
-              <select className="p-2 rounded border bg-black text-white" value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))}>
-                <option value="user">User</option>
+              <select className="p-2 rounded border bg-black text-white" value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value as Role }))}>
                 <option value="admin">Admin</option>
+                <option value="project_manager">Project Manager</option>
+                <option value="accountant">Accountant</option>
+                <option value="site_supervisor">Site Supervisor</option>
+                <option value="sales_crm">Sales / CRM</option>
+                <option value="vendor">Vendor</option>
+                <option value="client">Client</option>
+                <option value="user">Staff</option>
               </select>
               <Button type="submit" disabled={creating}>{creating ? "Creating..." : "Create"}</Button>
             </form>
@@ -214,8 +235,14 @@ export default function UsersPage() {
                       onChange={e => setUpdateRole(r => ({ ...r, [user._id]: e.target.value }))}
                       className="p-1 rounded bg-black text-white"
                     >
-                      <option value="user">User</option>
                       <option value="admin">Admin</option>
+                      <option value="project_manager">Project Manager</option>
+                      <option value="accountant">Accountant</option>
+                      <option value="site_supervisor">Site Supervisor</option>
+                      <option value="sales_crm">Sales / CRM</option>
+                      <option value="vendor">Vendor</option>
+                      <option value="client">Client</option>
+                      <option value="user">Staff</option>
                     </select>
                   ) : (
                     user.role

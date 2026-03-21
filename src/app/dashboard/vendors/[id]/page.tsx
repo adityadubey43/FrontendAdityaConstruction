@@ -62,7 +62,8 @@ export default function VendorDetailPage() {
     if (!confirm('Are you sure you want to delete this vendor?')) return
 
     try {
-      await apiFetch(`/api/vendors/${params.id}`, { method: 'DELETE' })
+      const token = typeof window !== 'undefined' ? localStorage.getItem('acls_token') || '' : ''
+      await apiFetch(`/api/vendors/${params.id}`, { method: 'DELETE', token })
       router.push('/dashboard/vendors')
     } catch (error) {
       console.error('Failed to delete vendor:', error)

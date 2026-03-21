@@ -64,7 +64,8 @@ export default function VendorsPage() {
       const params = new URLSearchParams()
       if (fromDate) params.set('from', fromDate)
       if (toDate) params.set('to', toDate)
-      const data = await apiFetch<Vendor[]>(`/api/vendors?${params.toString()}`)
+      const token = typeof window !== 'undefined' ? localStorage.getItem('acls_token') || '' : ''
+      const data = await apiFetch<Vendor[]>(`/api/vendors?${params.toString()}`, { token })
       setVendors(data)
     } catch (error) {
       console.error('Failed to fetch vendors:', error)
@@ -80,7 +81,8 @@ export default function VendorsPage() {
 
   const fetchProjects = async () => {
     try {
-      const data = await apiFetch<Array<{ _id: string; projectName: string }>>('/api/projects')
+      const token = typeof window !== 'undefined' ? localStorage.getItem('acls_token') || '' : ''
+      const data = await apiFetch<Array<{ _id: string; projectName: string }>>('/api/projects', { token })
       setProjects(data)
     } catch (error) {
       console.error('Failed to fetch projects:', error)
@@ -117,6 +119,7 @@ export default function VendorsPage() {
           notes: payForm.notes,
           type: 'expense',
         },
+        token: typeof window !== 'undefined' ? localStorage.getItem('acls_token') || '' : '',
       })
 
       setShowPayModal(false)
@@ -138,7 +141,8 @@ export default function VendorsPage() {
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this vendor?')) return
     try {
-      await apiFetch(`/api/vendors/${id}`, { method: 'DELETE' })
+      const token = typeof window !== 'undefined' ? localStorage.getItem('acls_token') || '' : ''
+      await apiFetch(`/api/vendors/${id}`, { method: 'DELETE', token })
       setVendors(vendors.filter(v => v._id !== id))
     } catch (error) {
       console.error('Failed to delete vendor:', error)

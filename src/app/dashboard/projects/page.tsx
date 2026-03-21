@@ -23,6 +23,13 @@ type Project = {
 
 const statusOptions: ProjectStatus[] = ['Planning', 'In Progress', 'On Hold', 'Completed']
 
+type User = {
+  _id: string
+  name: string
+  email: string
+  role: string
+}
+
 export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
@@ -33,6 +40,7 @@ export default function ProjectsPage() {
   const [toDate, setToDate] = useState<string | undefined>(undefined)
   const [showModal, setShowModal] = useState(false)
   const [editing, setEditing] = useState<Project | null>(null)
+  const [clients, setClients] = useState<User[]>([])
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('acls_token') || '' : ''
 
@@ -54,6 +62,10 @@ export default function ProjectsPage() {
 
   useEffect(() => {
     loadProjects()
+    // Fetch clients (users with role 'client')
+    apiFetch<User[]>('/api/users', { token })
+      .then((users) => setClients(users.filter(u => u.role === 'client')))
+      .catch(() => {}) // Ignore errors for now
   }, [loadProjects])
 
   const filtered = useMemo(() => {
@@ -209,6 +221,7 @@ export default function ProjectsPage() {
       {showModal && (
         <ProjectModal
           editing={editing}
+          clients={clients}
           onClose={() => setShowModal(false)}
           onSaved={() => {
             setShowModal(false)
@@ -223,11 +236,13 @@ export default function ProjectsPage() {
 
 function ProjectModal({
   editing,
+  clients,
   token,
   onClose,
   onSaved,
 }: {
   editing: Project | null
+  clients: User[]
   token: string
   onClose: () => void
   onSaved: () => void
@@ -286,13 +301,19 @@ function ProjectModal({
               className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white focus:outline-none"
               placeholder="Project name"
             />
-            <input
+            <select
               required
               value={form.clientName ?? ''}
               onChange={(e) => setForm((f) => ({ ...f, clientName: e.target.value }))}
               className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white focus:outline-none"
-              placeholder="Client name"
-            />
+            >
+              <option value="">Select Client</option>
+              {clients.map((client) => (
+                <option key={client._id} value={client.name}>
+                  {client.name} ({client.email})
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="grid gap-3 md:grid-cols-2">

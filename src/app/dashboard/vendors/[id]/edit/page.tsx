@@ -54,7 +54,8 @@ export default function EditVendorPage() {
 
   const fetchProjects = useCallback(async () => {
     try {
-      const data = await apiFetch<Project[]>('/api/projects')
+      const token = typeof window !== 'undefined' ? localStorage.getItem('acls_token') || '' : ''
+      const data = await apiFetch<Project[]>('/api/projects', { token })
       setProjects(data)
     } catch (error) {
       console.error('Failed to fetch projects:', error)
@@ -73,6 +74,7 @@ export default function EditVendorPage() {
     setLoading(true)
 
     try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('acls_token') || '' : ''
       await apiFetch(`/api/vendors/${params.id}`, {
         method: 'PATCH',
         body: {
@@ -83,7 +85,8 @@ export default function EditVendorPage() {
           phoneNumber: formData.phoneNumber,
           address: formData.address,
           assignedProjects: formData.projectId ? [formData.projectId] : []
-        }
+        },
+        token
       })
       router.push(`/dashboard/vendors/${params.id}`)
     } catch (error) {
