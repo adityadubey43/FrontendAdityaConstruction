@@ -220,6 +220,7 @@ export default function VendorsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>Sr No.</TableHead>
                   <TableHead>Name</TableHead>
                   <TableHead>Type</TableHead>
                   <TableHead>Contact</TableHead>
@@ -229,8 +230,9 @@ export default function VendorsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-            {filteredVendors.map((vendor) => (
+            {filteredVendors.map((vendor, index) => (
               <TableRow key={vendor._id}>
+                <TableCell>{index + 1}</TableCell>
                 <TableCell className="font-medium">{vendor.name}</TableCell>
                 <TableCell>
                   <Badge variant="secondary" className="capitalize">

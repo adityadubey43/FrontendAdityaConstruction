@@ -43,7 +43,8 @@ export default function VendorDetailPage() {
 
   const fetchVendor = useCallback(async () => {
     try {
-      const data = await apiFetch<Vendor>(`/api/vendors/${params.id}`)
+      const token = typeof window !== 'undefined' ? localStorage.getItem('acls_token') || '' : ''
+      const data = await apiFetch<Vendor>(`/api/vendors/${params.id}`, { token })
       setVendor(data)
     } catch (error) {
       console.error('Failed to fetch vendor:', error)
@@ -197,6 +198,7 @@ export default function VendorDetailPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead>Sr No.</TableHead>
                     <TableHead>Date</TableHead>
                     <TableHead>Amount</TableHead>
                     <TableHead>Method</TableHead>
@@ -204,8 +206,9 @@ export default function VendorDetailPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {vendor.paymentHistory.slice(0, 5).map((payment) => (
+                  {[...vendor.paymentHistory].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 5).map((payment, index) => (
                     <TableRow key={payment._id}>
+                      <TableCell>{index + 1}</TableCell>
                       <TableCell>{new Date(payment.date).toLocaleDateString()}</TableCell>
                       <TableCell>₹{payment.amount.toLocaleString()}</TableCell>
                       <TableCell className="capitalize">{payment.method}</TableCell>

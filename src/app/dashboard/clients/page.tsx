@@ -398,6 +398,7 @@ export default function ClientsPage() {
                 <table className="w-full text-sm">
                   <thead className="border-b border-white/10 bg-white/5">
                     <tr>
+                      <th className="px-4 py-3 text-left font-semibold text-white/80">Sr No.</th>
                       <th className="px-4 py-3 text-left font-semibold text-white/80">Project Name</th>
                       <th className="px-4 py-3 text-right font-semibold text-white/80">Bills Raised</th>
                       <th className="px-4 py-3 text-right font-semibold text-white/80">Payments</th>
@@ -406,7 +407,7 @@ export default function ClientsPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/10">
-                    {selectedClient.projects.map((project) => {
+                    {selectedClient.projects.map((project, index) => {
                       const isFullyPaid = project.pending <= 0
                       
                       return (
@@ -414,6 +415,7 @@ export default function ClientsPage() {
                           key={project.projectId}
                           className="hover:bg-white/10 transition-colors"
                         >
+                          <td className="px-4 py-4 text-white/60">{index + 1}</td>
                           <td className="px-4 py-4 font-medium text-white">{project.projectName}</td>
                           <td className="px-4 py-4 text-right text-blue-300">
                             ₹{Math.round(project.bills).toLocaleString('en-IN')}

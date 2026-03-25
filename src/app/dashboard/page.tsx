@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { apiFetch } from '@/lib/api'
 import { DateRangeFilter } from '@/components/ui/date-range-filter'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts'
 import Link from 'next/link'
 
 type MonthlyExpense = {
@@ -156,6 +156,7 @@ export default function DashboardHome() {
             <table className="w-full min-w-[600px] text-left">
               <thead className="border-b border-white/10 text-xs uppercase tracking-wide text-white/60">
                 <tr>
+                  <th className="px-4 py-3">Sr No.</th>
                   <th className="px-4 py-3">Project</th>
                   <th className="px-4 py-3">Expenses</th>
                   <th className="px-4 py-3">Payment Received</th>
@@ -165,8 +166,9 @@ export default function DashboardHome() {
                 </tr>
               </thead>
               <tbody>
-                {data.projectSummaries.slice(0, 6).map((project) => (
+                {data.projectSummaries.slice(0, 6).map((project, index) => (
                   <tr key={project.projectId} className="border-b border-white/10 hover:bg-white/5">
+                    <td className="px-4 py-4 text-white/60">{index + 1}</td>
                     <td className="px-4 py-4">{project.projectName || 'Unknown'}</td>
                     <td className="px-4 py-4">₹{Math.round(project.expenseTotal).toLocaleString('en-IN')}</td>
                     <td className="px-4 py-4">₹{Math.round(project.paymentTotal).toLocaleString('en-IN')}</td>
@@ -235,24 +237,25 @@ export default function DashboardHome() {
                     data={expenseTypes}
                     cx="50%"
                     cy="50%"
-                    labelLine={false}
-                    label={({ category, percent }) => `${category} ${(percent * 100).toFixed(0)}%`}
-                    outerRadius={80}
-                    fill="#8884d8"
+                    innerRadius={60}
+                    outerRadius={100}
+                    paddingAngle={6}
                     dataKey="total"
+                    nameKey="category"
+                    stroke="rgba(0,0,0,0.2)"
+                    strokeWidth={3}
+                    animationBegin={200}
+                    animationDuration={1200}
                   >
                     {expenseTypes.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
                   <Tooltip
-                    contentStyle={{
-                      backgroundColor: '#1a1a1a',
-                      border: '1px solid #ffffff20',
-                      borderRadius: '8px',
-                    }}
-                    formatter={(value: number) => [`₹${value.toLocaleString('en-IN')}`, 'Amount']}
+                    contentStyle={{ backgroundColor: '#18181b', border: '1px solid #ffffff20', borderRadius: '16px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.5)', padding: '12px 16px', fontWeight: 600 }}
+                    formatter={(value: number) => `₹${value.toLocaleString('en-IN')}`}
                   />
+                  <Legend layout="vertical" verticalAlign="middle" align="right" iconType="circle" wrapperStyle={{ fontWeight: 600, fontSize: '13px', lineHeight: '28px' }} />
                 </PieChart>
               </ResponsiveContainer>
             </div>

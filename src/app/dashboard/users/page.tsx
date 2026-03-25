@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { apiFetch } from "@/lib/api";
 
-type Role = 'admin' | 'project_manager' | 'accountant' | 'site_supervisor' | 'sales_crm' | 'vendor' | 'client' | 'user';
+type Role = 'admin' | 'project_manager' | 'accountant' | 'site_supervisor' | 'sales_crm' | 'client' | 'user';
 
 type User = {
   _id: string;
@@ -155,7 +155,6 @@ export default function UsersPage() {
             <option value="accountant">Accountant</option>
             <option value="site_supervisor">Site Supervisor</option>
             <option value="sales_crm">Sales / CRM</option>
-            <option value="vendor">Vendor</option>
             <option value="client">Client</option>
             <option value="user">Staff</option>
           </select>
@@ -195,7 +194,6 @@ export default function UsersPage() {
                 <option value="accountant">Accountant</option>
                 <option value="site_supervisor">Site Supervisor</option>
                 <option value="sales_crm">Sales / CRM</option>
-                <option value="vendor">Vendor</option>
                 <option value="client">Client</option>
                 <option value="user">Staff</option>
               </select>
@@ -208,6 +206,7 @@ export default function UsersPage() {
         <table className="min-w-full bg-[#232326] rounded-xl text-white">
           <thead>
             <tr>
+              <th className="p-2">Sr No.</th>
               <th className="p-2">Name</th>
               <th className="p-2">Email</th>
               <th className="p-2">Mobile</th>
@@ -217,18 +216,19 @@ export default function UsersPage() {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={5} className="text-center p-4">Loading...</td></tr>
+              <tr><td colSpan={6} className="text-center p-4">Loading...</td></tr>
             ) : users.length === 0 ? (
-              <tr><td colSpan={5} className="text-center p-4">No users found.</td></tr>
-            ) : filteredUsers.map((user) => (
+              <tr><td colSpan={6} className="text-center p-4">No users found.</td></tr>
+            ) : filteredUsers.map((user, index) => (
               <tr key={user._id} className="border-t border-white/10">
+                <td className="p-2">{index + 1}</td>
                 <td className="p-2">{user.name}</td>
                 <td className="p-2">{user.email}</td>
                 <td className="p-2">{user.countryCode} {user.mobilenumber}</td>
                 <td className="p-2">
                   {currentUserRole === 'admin' ? (
                   user.role === "admin" ? (
-                    <span className="font-bold text-black">admin</span>
+                    <span className="font-bold text-white">admin</span>
                   ) : updatingId === user._id ? (
                     <select
                       value={updateRole[user._id] ?? user.role}
@@ -240,7 +240,6 @@ export default function UsersPage() {
                       <option value="accountant">Accountant</option>
                       <option value="site_supervisor">Site Supervisor</option>
                       <option value="sales_crm">Sales / CRM</option>
-                      <option value="vendor">Vendor</option>
                       <option value="client">Client</option>
                       <option value="user">Staff</option>
                     </select>

@@ -470,6 +470,7 @@ export default function ProjectDetailPage() {
                   <table className="w-full min-w-[800px] border-collapse text-left">
                     <thead className="border-b border-white/10 text-xs uppercase tracking-wide text-white/60">
                       <tr>
+                        <th className="px-4 py-3">Sr No.</th>
                         <th className="px-4 py-3">Title</th>
                         <th className="px-4 py-3">Type</th>
                         <th className="px-4 py-3">Amount</th>
@@ -479,8 +480,9 @@ export default function ProjectDetailPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {allTransactions.map((transaction) => (
+                      {allTransactions.map((transaction, index) => (
                         <tr key={transaction._id} className="border-b border-white/10 hover:bg-white/5">
+                          <td className="px-4 py-4">{index + 1}</td>
                           <td className="px-4 py-4">{transaction.title}</td>
                           <td className="px-4 py-4">{transaction.transactionType === 'payment' ? 'Payment' : 'Expense'}</td>
                           <td className="px-4 py-4">₹{transaction.amount.toLocaleString()}</td>
@@ -542,6 +544,7 @@ export default function ProjectDetailPage() {
                   <table className="w-full min-w-[800px] border-collapse text-left">
                     <thead className="border-b border-white/10 text-xs uppercase tracking-wide text-white/60">
                       <tr>
+                        <th className="px-4 py-3">Sr No.</th>
                         <th className="px-4 py-3">Bill Number</th>
                         <th className="px-4 py-3">Title</th>
                         <th className="px-4 py-3">Client</th>
@@ -553,8 +556,9 @@ export default function ProjectDetailPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {bills.map((bill) => (
+                      {bills.map((bill, index) => (
                         <tr key={bill._id} className="border-b border-white/10 hover:bg-white/5">
+                          <td className="px-4 py-4 text-white/60">{index + 1}</td>
                           <td className="px-4 py-4 font-medium">{bill.billNumber}</td>
                           <td className="px-4 py-4">{bill.title}</td>
                           <td className="px-4 py-4">{bill.clientName}</td>

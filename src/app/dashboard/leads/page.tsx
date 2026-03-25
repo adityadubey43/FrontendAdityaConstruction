@@ -157,6 +157,7 @@ export default function LeadsPage() {
           <table className="w-full min-w-[900px] border-collapse text-left">
             <thead className="border-b border-white/10 text-xs uppercase tracking-wide text-white/60">
               <tr>
+                <th className="px-4 py-3">Sr No.</th>
                 <th className="px-4 py-3">Lead</th>
                 <th className="px-4 py-3">Project</th>
                 <th className="px-4 py-3">Budget</th>
@@ -166,8 +167,9 @@ export default function LeadsPage() {
               </tr>
             </thead>
             <tbody>
-              {filteredLeads.map((lead) => (
+              {filteredLeads.map((lead, index) => (
                 <tr key={lead._id} className="border-b border-white/10">
+                  <td className="px-4 py-4 text-white/60">{index + 1}</td>
                   <td className="px-4 py-4">
                     <div className="font-semibold">{lead.name}</div>
                     <div className="text-xs text-white/60">{lead.email}</div>

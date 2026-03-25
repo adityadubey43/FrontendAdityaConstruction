@@ -142,6 +142,7 @@ export default function ProjectsPage() {
           <table className="w-full min-w-[900px] border-collapse text-left">
             <thead className="border-b border-white/10 text-xs uppercase tracking-wide text-white/60">
               <tr>
+                <th className="px-4 py-3">Sr No.</th>
                 <th className="px-4 py-3">Project</th>
                 <th className="px-4 py-3">Client</th>
                 <th className="px-4 py-3">Status</th>
@@ -153,13 +154,14 @@ export default function ProjectsPage() {
             <tbody>
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="text-center p-6 text-white/60">
+                  <td colSpan={7} className="text-center p-6 text-white/60">
                     No projects found.
                   </td>
                 </tr>
               ) : (
-                filtered.map((project) => (
+                filtered.map((project, index) => (
                   <tr key={project._id} className="border-b border-white/10 hover:bg-white/5">
+                    <td className="px-4 py-4">{index + 1}</td>
                     <td className="px-4 py-4">
                       <div className="font-semibold">{project.projectName}</div>
                       <div className="text-xs text-white/60">{project.location}</div>

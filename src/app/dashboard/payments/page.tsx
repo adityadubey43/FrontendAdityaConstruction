@@ -131,6 +131,7 @@ export default function PaymentsPage() {
             <table className="w-full min-w-[720px] text-left">
               <thead className="border-b border-white/10 text-xs uppercase tracking-wide text-white/60">
                 <tr>
+                  <th className="px-4 py-3">Sr No.</th>
                   <th className="px-4 py-3">Project</th>
                   <th className="px-4 py-3">Title</th>
                   <th className="px-4 py-3">Amount</th>
@@ -141,8 +142,9 @@ export default function PaymentsPage() {
                 </tr>
               </thead>
               <tbody>
-                {payments.map((pay) => (
+                {payments.map((pay, index) => (
                   <tr key={pay._id} className="border-b border-white/10 hover:bg-white/5">
+                    <td className="px-4 py-4 text-white/60">{index + 1}</td>
                     <td className="px-4 py-4">{pay.project?.projectName ?? '—'}</td>
                     <td className="px-4 py-4">{pay.title}</td>
                     <td className="px-4 py-4">₹{pay.amount.toLocaleString()}</td>

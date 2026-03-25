@@ -35,7 +35,8 @@ export default function RecordPaymentPage() {
 
   const fetchVendor = useCallback(async () => {
     try {
-      const data = await apiFetch<Vendor>(`/api/vendors/${params.id}`)
+      const token = typeof window !== 'undefined' ? localStorage.getItem('acls_token') || '' : ''
+      const data = await apiFetch<Vendor>(`/api/vendors/${params.id}`, { token })
       setVendor(data)
       if (data.projects.length > 0) {
         setFormData(prev => ({ ...prev, projectId: data.projects[0]._id }))

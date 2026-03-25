@@ -214,25 +214,27 @@ export default function ExpensesPage() {
             <table className="w-full min-w-[720px] text-left">
               <thead className="border-b border-white/10 text-xs uppercase tracking-wide text-white/60">
                 <tr>
-                  <th className="px-4 py-3">Project</th>
-                  <th className="px-4 py-3">Vendor</th>
-                  <th className="px-4 py-3">Title</th>
+                  <th className="px-4 py-3">Sr No.</th>
+                  <th className="px-4 py-3">Date</th>
                   <th className="px-4 py-3">Amount</th>
                   <th className="px-4 py-3">Category</th>
-                  <th className="px-4 py-3">Date</th>
+                  <th className="px-4 py-3">Vendor</th>
+                  <th className="px-4 py-3">Title</th>
+                  <th className="px-4 py-3">Project</th>
                   <th className="px-4 py-3">Notes</th>
                   <th className="px-4 py-3">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredExpenses.map((exp) => (
+                {filteredExpenses.map((exp, index) => (
                   <tr key={exp._id} className="border-b border-white/10 hover:bg-white/5">
-                    <td className="px-4 py-4">{exp.project?.projectName ?? '—'}</td>
+                    <td className="px-4 py-4">{index + 1}</td>
+                    <td className="px-4 py-4">{exp.date ? new Date(exp.date).toLocaleDateString() : '-'}</td>
+                    <td className="px-4 py-4 font-semibold">₹{exp.amount.toLocaleString()}</td>
+                    <td className="px-4 py-4">{exp.category}</td>
                     <td className="px-4 py-4">{exp.vendor ? `${exp.vendor.vendorName} (${exp.vendor.companyName})` : '—'}</td>
                     <td className="px-4 py-4">{exp.title}</td>
-                    <td className="px-4 py-4">₹{exp.amount.toLocaleString()}</td>
-                    <td className="px-4 py-4">{exp.category}</td>
-                    <td className="px-4 py-4">{exp.date ? new Date(exp.date).toLocaleDateString() : '-'}</td>
+                    <td className="px-4 py-4">{exp.project?.projectName ?? '—'}</td>
                     <td className="px-4 py-4">{exp.notes ?? '-'}</td>
                     <td className="px-4 py-4">
                       <button

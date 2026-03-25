@@ -35,7 +35,8 @@ export default function EditVendorPage() {
 
   const fetchVendor = useCallback(async () => {
     try {
-      const data = await apiFetch<{ vendorName: string; vendorType: string; companyName: string; email: string; phoneNumber: string; address: string; assignedProjects?: Array<{ _id: string }> }>(`/api/vendors/${params.id}`)
+      const token = typeof window !== 'undefined' ? localStorage.getItem('acls_token') || '' : ''
+      const data = await apiFetch<{ vendorName: string; vendorType: string; companyName: string; email: string; phoneNumber: string; address: string; assignedProjects?: Array<{ _id: string }> }>(`/api/vendors/${params.id}`, { token })
       setFormData({
         vendorName: data.vendorName,
         vendorType: data.vendorType,
