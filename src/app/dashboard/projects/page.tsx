@@ -66,7 +66,7 @@ export default function ProjectsPage() {
     apiFetch<User[]>('/api/users', { token })
       .then((users) => setClients(users.filter(u => u.role === 'client')))
       .catch(() => {}) // Ignore errors for now
-  }, [loadProjects])
+  }, [loadProjects, token])
 
   const filtered = useMemo(() => {
     const lower = search.trim().toLowerCase()

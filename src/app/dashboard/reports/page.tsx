@@ -4,7 +4,7 @@ import React, { useEffect, useState, useMemo } from 'react'
 import { apiFetch } from '@/lib/api'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
+  XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
   PieChart, Pie, Cell, AreaChart, Area, Legend
 } from 'recharts'
 import {
