@@ -28,6 +28,8 @@ export default function PaymentsPage() {
   const [showModal, setShowModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [projectFilter, setProjectFilter] = useState<string>("all");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [fromDate, setFromDate] = useState<string | undefined>(undefined);
   const [toDate, setToDate] = useState<string | undefined>(undefined);
   const [form, setForm] = useState<Partial<Payment>>({
@@ -49,6 +51,7 @@ export default function PaymentsPage() {
     setError(null);
     try {
       const params = new URLSearchParams();
+      if (projectFilter !== "all") params.set("projectId", projectFilter);
       if (fromDate) params.set("from", fromDate);
       if (toDate) params.set("to", toDate);
       const paymentsPath = params.toString()
@@ -74,7 +77,7 @@ export default function PaymentsPage() {
 
   useEffect(() => {
     loadPayments();
-  }, [token, fromDate, toDate]);
+  }, [token, projectFilter, fromDate, toDate]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -132,117 +135,248 @@ export default function PaymentsPage() {
     }
   };
 
+  const filteredPayments = payments.filter((pay) => {
+    const projectMatches =
+      projectFilter === "all" || pay.project?._id === projectFilter;
+    const categoryMatches =
+      categoryFilter === "all" || pay.category === categoryFilter;
+    return projectMatches && categoryMatches;
+  });
+
+  const totalPayments = filteredPayments.reduce(
+    (sum, pay) => sum + Number(pay.amount),
+    0,
+  );
+
+  const selectedProjectPayments =
+    projectFilter !== "all"
+      ? payments.filter((pay) => pay.project?._id === projectFilter)
+      : [];
+
+  const selectedProjectTotal = selectedProjectPayments.reduce(
+    (sum, pay) => sum + Number(pay.amount),
+    0,
+  );
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="text-xl font-semibold">Payments Received</div>
-          <div className="mt-2 text-xs text-white/60">
-            Track payments received from clients per project.
+    <div className="flex flex-col gap-6">
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-xl font-semibold">Payments Received</div>
+            <div className="mt-2 text-xs text-white/60">
+              Track payments received from clients per project.
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+            <DateRangeFilter
+              label="Date range"
+              from={fromDate}
+              to={toDate}
+              onChange={({ from, to }) => {
+                setFromDate(from);
+                setToDate(to);
+              }}
+            />
           </div>
         </div>
-        <div className="flex items-center gap-4">
-          <DateRangeFilter
-            label="Date range"
-            from={fromDate}
-            to={toDate}
-            onChange={({ from, to }) => {
-              setFromDate(from);
-              setToDate(to);
-            }}
-          />
-        </div>
-      </div>
 
-      {error && <div className="text-sm text-red-300">{error}</div>}
+        {error && <div className="text-sm text-red-300">{error}</div>}
 
-      <div className="glass rounded-3xl p-6">
-        {loading ? (
-          <div className="h-48 animate-pulse" />
-        ) : payments.length === 0 ? (
-          <div className="text-sm text-white/60">
-            No payments received recorded yet.
-          </div>
-        ) : (
-          <div className="overflow-x-auto max-h-80 overflow-y-auto">
-            <table className="w-full min-w-[720px] text-left">
-              <thead className="border-b border-white/10 text-xs uppercase tracking-wide text-white/60">
-                <tr>
-                  <th className="px-4 py-3">Sr No.</th>
-                  <th className="px-4 py-3">Project</th>
-                  <th className="px-4 py-3">Title</th>
-                  <th className="px-4 py-3">Amount</th>
-                  <th className="px-4 py-3">Category</th>
-                  <th className="px-4 py-3">Date</th>
-                  <th className="px-4 py-3">Notes</th>
-                  <th className="px-4 py-3">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {payments.map((pay, index) => (
-                  <tr
-                    key={pay._id}
-                    className="border-b border-white/10 hover:bg-white/5"
-                  >
-                    <td className="px-4 py-4 text-white/60">{index + 1}</td>
-                    <td className="px-4 py-4">
-                      {pay.project?.projectName ?? "—"}
-                    </td>
-                    <td className="px-4 py-4">{pay.title}</td>
-                    <td className="px-4 py-4">
-                      ₹{pay.amount.toLocaleString()}
-                    </td>
-                    <td className="px-4 py-4">{pay.category}</td>
-                    <td className="px-4 py-4">
-                      {pay.date ? new Date(pay.date).toLocaleDateString() : "-"}
-                    </td>
-                    <td className="px-4 py-4">{pay.notes ?? "-"}</td>
-                    <td className="px-4 py-4">
-                      <button
-                        onClick={() => {
-                          setIsEditing(true);
-                          setEditingId(pay._id);
-                          setForm({
-                            title: pay.title,
-                            amount: String(pay.amount),
-                            type: pay.type,
-                            category: pay.category,
-                            date: pay.date
-                              ? new Date(pay.date).toISOString().slice(0, 10)
-                              : "",
-                            notes: pay.notes,
-                            paymentMethod: pay.paymentMethod,
-                            project: pay.project,
-                          });
-                          setShowModal(true);
-                        }}
-                        className="text-white/60 hover:text-white"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={() => removePayment(pay._id)}
-                        className="ml-3 text-red-300 hover:text-red-200"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </td>
-                  </tr>
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-4">
+              <select
+                value={projectFilter}
+                onChange={(e) => setProjectFilter(e.target.value)}
+                className="rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm text-white focus:outline-none"
+              >
+                <option value="all">All Projects</option>
+                {projects.map((project) => (
+                  <option key={project._id} value={project._id}>
+                    {project.projectName}
+                  </option>
                 ))}
-              </tbody>
-            </table>
+              </select>
+              <select
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+                className="rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm text-white focus:outline-none"
+              >
+                <option value="all">All Categories</option>
+                <option value="Labor">Labor</option>
+                <option value="Material">Material</option>
+                <option value="Equipment">Equipment</option>
+                <option value="Transport">Transport</option>
+                <option value="Miscellaneous">Miscellaneous</option>
+              </select>
+            </div>
+            <div className="flex items-center justify-between md:justify-end md:gap-8">
+              <div>
+                <div className="text-sm text-white/60">
+                  {projectFilter === "all" && categoryFilter === "all"
+                    ? "Total Payments Received"
+                    : `Total Payments Received (${projectFilter !== "all" ? projects.find((p) => p._id === projectFilter)?.projectName : ""}${projectFilter !== "all" && categoryFilter !== "all" ? ", " : ""}${categoryFilter !== "all" ? categoryFilter : ""})`
+                        .replace(/^.*\(,/, "(")
+                        .replace(/, \)/, ")")}
+                </div>
+                <div className="text-2xl font-bold text-white">
+                  ₹{totalPayments.toLocaleString()}
+                </div>
+              </div>
+              <div className="text-sm text-white/60">
+                {filteredPayments.length} payment
+                {filteredPayments.length !== 1 ? "s" : ""}
+              </div>
+            </div>
           </div>
-        )}
-        <div className="mt-4 flex justify-end">
-          <Button
-            onClick={() => setShowModal(true)}
-            className="inline-flex items-center gap-2"
-          >
-            <Plus className="h-4 w-4" />
-            Add payment received
-          </Button>
+        </div>
+
+        <div className="glass rounded-3xl p-6">
+          {loading ? (
+            <div className="h-48 animate-pulse" />
+          ) : filteredPayments.length === 0 ? (
+            <div className="text-sm text-white/60">
+              {projectFilter === "all" && categoryFilter === "all"
+                ? "No payments received recorded yet."
+                : "No payments found for selected filters."}
+            </div>
+          ) : (
+            <div className="overflow-x-auto max-h-80 overflow-y-auto">
+              <table className="w-full min-w-[720px] text-left">
+                <thead className="border-b border-white/10 text-xs uppercase tracking-wide text-white/60">
+                  <tr>
+                    <th className="px-4 py-3">Sr No.</th>
+                    <th className="px-4 py-3">Project</th>
+                    <th className="px-4 py-3">Title</th>
+                    <th className="px-4 py-3">Amount</th>
+                    <th className="px-4 py-3">Category</th>
+                    <th className="px-4 py-3">Date</th>
+                    <th className="px-4 py-3">Notes</th>
+                    <th className="px-4 py-3">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredPayments.map((pay, index) => (
+                    <tr
+                      key={pay._id}
+                      className="border-b border-white/10 hover:bg-white/5"
+                    >
+                      <td className="px-4 py-4 text-white/60">{index + 1}</td>
+                      <td className="px-4 py-4">
+                        {pay.project?.projectName ?? "—"}
+                      </td>
+                      <td className="px-4 py-4">{pay.title}</td>
+                      <td className="px-4 py-4">
+                        ₹{pay.amount.toLocaleString()}
+                      </td>
+                      <td className="px-4 py-4">{pay.category}</td>
+                      <td className="px-4 py-4">
+                        {pay.date
+                          ? new Date(pay.date).toLocaleDateString()
+                          : "-"}
+                      </td>
+                      <td className="px-4 py-4">{pay.notes ?? "-"}</td>
+                      <td className="px-4 py-4">
+                        <button
+                          onClick={() => {
+                            setIsEditing(true);
+                            setEditingId(pay._id);
+                            setForm({
+                              title: pay.title,
+                              amount: String(pay.amount),
+                              type: pay.type,
+                              category: pay.category,
+                              date: pay.date
+                                ? new Date(pay.date).toISOString().slice(0, 10)
+                                : "",
+                              notes: pay.notes,
+                              paymentMethod: pay.paymentMethod,
+                              project: pay.project,
+                            });
+                            setShowModal(true);
+                          }}
+                          className="text-white/60 hover:text-white transition-colors"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => removePayment(pay._id)}
+                          className="ml-3 text-red-300 hover:text-red-200 transition-colors"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+          <div className="mt-4 flex justify-end">
+            <Button
+              onClick={() => setShowModal(true)}
+              className="inline-flex items-center gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              Add payment received
+            </Button>
+          </div>
         </div>
       </div>
+
+      {/* Right Sidebar - Selected Project Payments */}
+      {projectFilter !== "all" && (
+        <div className="w-80 space-y-4">
+          <div className="glass rounded-3xl p-6">
+            <div className="mb-4">
+              <div className="text-lg font-semibold">
+                {projects.find((p) => p._id === projectFilter)?.projectName}
+              </div>
+              <div className="text-xs text-white/60">
+                Payments for this project
+              </div>
+            </div>
+
+            {selectedProjectPayments.length === 0 ? (
+              <div className="text-sm text-white/60">
+                No payments received for this project yet.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="flex justify-between items-center pb-2 border-b border-white/10">
+                  <span className="text-sm text-white/60">Total</span>
+                  <span className="text-lg font-bold">
+                    ₹{selectedProjectTotal.toLocaleString()}
+                  </span>
+                </div>
+                {selectedProjectPayments.map((pay) => (
+                  <div
+                    key={pay._id}
+                    className="p-3 rounded-xl bg-white/5 border border-white/10"
+                  >
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="font-medium text-sm">{pay.title}</div>
+                      <div className="font-bold">
+                        ₹{Number(pay.amount).toLocaleString()}
+                      </div>
+                    </div>
+                    <div className="text-xs text-white/60">
+                      {pay.date ? new Date(pay.date).toLocaleDateString() : "-"}{" "}
+                      • {pay.category}
+                    </div>
+                    {pay.notes && (
+                      <div className="text-xs text-white/40 mt-1">
+                        {pay.notes}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
@@ -272,7 +406,7 @@ export default function PaymentsPage() {
                     notes: "",
                   });
                 }}
-                className="text-white/60 hover:text-white"
+                className="text-white/60 hover:text-white transition-colors"
               >
                 ×
               </button>
@@ -380,7 +514,7 @@ export default function PaymentsPage() {
                       notes: "",
                     });
                   }}
-                  className="rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm text-white hover:bg-white/15"
+                  className="rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm text-white hover:bg-white/15 transition-all"
                 >
                   Cancel
                 </button>

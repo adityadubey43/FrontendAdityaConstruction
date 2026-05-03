@@ -1,133 +1,199 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
-import { apiFetch } from '@/lib/api'
-import { DateRangeFilter } from '@/components/ui/date-range-filter'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts'
-import Link from 'next/link'
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { apiFetch } from "@/lib/api";
+import { DateRangeFilter } from "@/components/ui/date-range-filter";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
+} from "recharts";
+import Link from "next/link";
 
 type MonthlyExpense = {
-  month: string
-  total: number
-}
+  month: string;
+  total: number;
+};
 
 type ExpenseType = {
-  category: string
-  total: number
-  count: number
-}
+  category: string;
+  total: number;
+  count: number;
+};
 
 export default function DashboardHome() {
-  const [data, setData] = useState<
-    | {
-        totalLeads: number
-        activeProjects: number
-        totalExpenses: number
-        totalRevenue: number
-        totalBills: number
-        projectSummaries?: Array<{
-          projectId: string
-          projectName?: string
-          expenseTotal: number
-          paymentTotal: number
-          billTotal: number
-          netTotal?: number
-        }>
-      }
-    | null
-  >(null)
-  const [error, setError] = useState<string | null>(null)
+  const [data, setData] = useState<{
+    totalLeads: number;
+    activeProjects: number;
+    totalExpenses: number;
+    totalRevenue: number;
+    totalBills: number;
+    projectSummaries?: Array<{
+      projectId: string;
+      projectName?: string;
+      expenseTotal: number;
+      paymentTotal: number;
+      billTotal: number;
+      netTotal?: number;
+    }>;
+  } | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const [fromDate, setFromDate] = useState<string | undefined>(undefined)
-  const [toDate, setToDate] = useState<string | undefined>(undefined)
+  const [fromDate, setFromDate] = useState<string | undefined>(undefined);
+  const [toDate, setToDate] = useState<string | undefined>(undefined);
 
-  const [monthlyExpenses, setMonthlyExpenses] = useState<MonthlyExpense[]>([])
-  const [monthlyLoading, setMonthlyLoading] = useState(true)
-  const [monthlyError, setMonthlyError] = useState<string | null>(null)
+  const [monthlyExpenses, setMonthlyExpenses] = useState<MonthlyExpense[]>([]);
+  const [monthlyLoading, setMonthlyLoading] = useState(true);
+  const [monthlyError, setMonthlyError] = useState<string | null>(null);
 
-  const [expenseTypes, setExpenseTypes] = useState<ExpenseType[]>([])
-  const [expenseTypesLoading, setExpenseTypesLoading] = useState(true)
-  const [expenseTypesError, setExpenseTypesError] = useState<string | null>(null)
+  const [expenseTypes, setExpenseTypes] = useState<ExpenseType[]>([]);
+  const [expenseTypesLoading, setExpenseTypesLoading] = useState(true);
+  const [expenseTypesError, setExpenseTypesError] = useState<string | null>(
+    null,
+  );
 
   // Colors for pie chart
-  const COLORS = ['#ffc460', '#ff8c42', '#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7', '#dda0dd']
+  const COLORS = [
+    "#ffc460",
+    "#ff8c42",
+    "#ff6b6b",
+    "#4ecdc4",
+    "#45b7d1",
+    "#96ceb4",
+    "#ffeaa7",
+    "#dda0dd",
+  ];
 
   useEffect(() => {
-    const token = localStorage.getItem('acls_token') || ''
-    const params = new URLSearchParams()
-    if (fromDate) params.set('from', fromDate)
-    if (toDate) params.set('to', toDate)
+    const token = localStorage.getItem("acls_token") || "";
+    const params = new URLSearchParams();
+    if (fromDate) params.set("from", fromDate);
+    if (toDate) params.set("to", toDate);
     apiFetch<{
-      totalLeads: number
-      activeProjects: number
-      totalExpenses: number
-      totalRevenue: number
-      totalBills: number
+      totalLeads: number;
+      activeProjects: number;
+      totalExpenses: number;
+      totalRevenue: number;
+      totalBills: number;
       projectSummaries?: Array<{
-        projectId: string
-        projectName?: string
-        expenseTotal: number
-        paymentTotal: number
-        billTotal: number
-        netTotal?: number
-      }>
+        projectId: string;
+        projectName?: string;
+        expenseTotal: number;
+        paymentTotal: number;
+        billTotal: number;
+        netTotal?: number;
+      }>;
     }>(`/api/reports/dashboard?${params.toString()}`, {
       token,
     })
       .then(setData)
-      .catch((e) => setError(e instanceof Error ? e.message : 'Failed'))
-  }, [fromDate, toDate])
+      .catch((e) => setError(e instanceof Error ? e.message : "Failed"));
+  }, [fromDate, toDate]);
 
   useEffect(() => {
-    const token = localStorage.getItem('acls_token') || ''
-    const params = new URLSearchParams()
-    if (fromDate) params.set('from', fromDate)
-    if (toDate) params.set('to', toDate)
+    const token = localStorage.getItem("acls_token") || "";
+    const params = new URLSearchParams();
+    if (fromDate) params.set("from", fromDate);
+    if (toDate) params.set("to", toDate);
 
-    setMonthlyLoading(true)
-    apiFetch<MonthlyExpense[]>(`/api/reports/monthly-expenses?${params.toString()}`, { token })
+    setMonthlyLoading(true);
+    apiFetch<MonthlyExpense[]>(
+      `/api/reports/monthly-expenses?${params.toString()}`,
+      { token },
+    )
       .then(setMonthlyExpenses)
-      .catch((e) => setMonthlyError(e instanceof Error ? e.message : 'Failed to load monthly expenses'))
-      .finally(() => setMonthlyLoading(false))
-  }, [fromDate, toDate])
+      .catch((e) =>
+        setMonthlyError(
+          e instanceof Error ? e.message : "Failed to load monthly expenses",
+        ),
+      )
+      .finally(() => setMonthlyLoading(false));
+  }, [fromDate, toDate]);
 
   useEffect(() => {
-    const token = localStorage.getItem('acls_token') || ''
-    const params = new URLSearchParams()
-    if (fromDate) params.set('from', fromDate)
-    if (toDate) params.set('to', toDate)
+    const token = localStorage.getItem("acls_token") || "";
+    const params = new URLSearchParams();
+    if (fromDate) params.set("from", fromDate);
+    if (toDate) params.set("to", toDate);
 
-    setExpenseTypesLoading(true)
-    apiFetch<ExpenseType[]>(`/api/reports/expense-types?${params.toString()}`, { token })
+    setExpenseTypesLoading(true);
+    apiFetch<ExpenseType[]>(`/api/reports/expense-types?${params.toString()}`, {
+      token,
+    })
       .then(setExpenseTypes)
-      .catch((e) => setExpenseTypesError(e instanceof Error ? e.message : 'Failed to load expense types'))
-      .finally(() => setExpenseTypesLoading(false))
-  }, [fromDate, toDate])
+      .catch((e) =>
+        setExpenseTypesError(
+          e instanceof Error ? e.message : "Failed to load expense types",
+        ),
+      )
+      .finally(() => setExpenseTypesLoading(false));
+  }, [fromDate, toDate]);
+
+  const totalProfitLoss = data ? data.totalRevenue - data.totalExpenses : 0;
+  const profitLossColor =
+    totalProfitLoss >= 0 ? "text-green-400" : "text-red-400";
 
   const cards = [
-    { label: 'Total Leads', value: data?.totalLeads ?? '—' },
-    { label: 'Active Projects', value: data?.activeProjects ?? '—' },
-    { label: 'Total Expenses', value: data ? `₹${Math.round(data.totalExpenses).toLocaleString('en-IN')}` : '—' },
-    { label: 'Total Bills', value: data ? `₹${Math.round(data.totalBills).toLocaleString('en-IN')}` : '—' },
-    { label: 'Total Payment Received', value: data ? `₹${Math.round(data.totalRevenue).toLocaleString('en-IN')}` : '—' },
-    { label: 'Pending Bills', value: data ? `₹${Math.round(data.totalBills - data.totalRevenue).toLocaleString('en-IN')}` : '—' },
-  ]
+    { label: "Total Leads", value: data?.totalLeads ?? "—" },
+    { label: "Active Projects", value: data?.activeProjects ?? "—" },
+    {
+      label: "Total Expenses",
+      value: data
+        ? `₹${Math.round(data.totalExpenses).toLocaleString("en-IN")}`
+        : "—",
+    },
+    {
+      label: "Total Bills",
+      value: data
+        ? `₹${Math.round(data.totalBills).toLocaleString("en-IN")}`
+        : "—",
+    },
+    {
+      label: "Total Payment Received",
+      value: data
+        ? `₹${Math.round(data.totalRevenue).toLocaleString("en-IN")}`
+        : "—",
+    },
+    {
+      label: "Total Profit/Loss",
+      value: data
+        ? `₹${Math.round(totalProfitLoss).toLocaleString("en-IN")}`
+        : "—",
+      colorClass: profitLossColor,
+    },
+    {
+      label: "Pending Bills",
+      value: data
+        ? `₹${Math.round(data.totalBills - data.totalRevenue).toLocaleString("en-IN")}`
+        : "—",
+    },
+  ];
 
   return (
     <div>
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
           <div className="text-xl font-semibold">Dashboard</div>
-          <div className="mt-1 text-xs text-white/60">Overview of leads, projects, and expenses.</div>
+          <div className="mt-1 text-xs text-white/60">
+            Overview of leads, projects, and expenses.
+          </div>
         </div>
         <DateRangeFilter
           label="Date range"
           from={fromDate}
           to={toDate}
           onChange={({ from, to }) => {
-            setFromDate(from)
-            setToDate(to)
+            setFromDate(from);
+            setToDate(to);
           }}
         />
       </div>
@@ -144,7 +210,11 @@ export default function DashboardHome() {
             className="glass rounded-3xl p-5"
           >
             <div className="text-xs text-white/60">{c.label}</div>
-            <div className="mt-2 text-2xl font-semibold">{c.value}</div>
+            <div
+              className={`mt-2 text-2xl font-semibold ${c.colorClass || ""}`}
+            >
+              {c.value}
+            </div>
           </motion.div>
         ))}
       </div>
@@ -167,14 +237,35 @@ export default function DashboardHome() {
               </thead>
               <tbody>
                 {data.projectSummaries.slice(0, 6).map((project, index) => (
-                  <tr key={project.projectId} className="border-b border-white/10 hover:bg-white/5">
+                  <tr
+                    key={project.projectId}
+                    className="border-b border-white/10 hover:bg-white/5"
+                  >
                     <td className="px-4 py-4 text-white/60">{index + 1}</td>
-                    <td className="px-4 py-4">{project.projectName || 'Unknown'}</td>
-                    <td className="px-4 py-4">₹{Math.round(project.expenseTotal).toLocaleString('en-IN')}</td>
-                    <td className="px-4 py-4">₹{Math.round(project.paymentTotal).toLocaleString('en-IN')}</td>
-                    <td className="px-4 py-4">₹{Math.round(project.billTotal || 0).toLocaleString('en-IN')}</td>
-                    <td className={`px-4 py-4 ${(project.netTotal || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                      ₹{Math.round(project.netTotal || 0).toLocaleString('en-IN')}
+                    <td className="px-4 py-4">
+                      {project.projectName || "Unknown"}
+                    </td>
+                    <td className="px-4 py-4">
+                      ₹
+                      {Math.round(project.expenseTotal).toLocaleString("en-IN")}
+                    </td>
+                    <td className="px-4 py-4">
+                      ₹
+                      {Math.round(project.paymentTotal).toLocaleString("en-IN")}
+                    </td>
+                    <td className="px-4 py-4">
+                      ₹
+                      {Math.round(project.billTotal || 0).toLocaleString(
+                        "en-IN",
+                      )}
+                    </td>
+                    <td
+                      className={`px-4 py-4 ${(project.netTotal || 0) >= 0 ? "text-green-400" : "text-red-400"}`}
+                    >
+                      ₹
+                      {Math.round(project.netTotal || 0).toLocaleString(
+                        "en-IN",
+                      )}
                     </td>
                     <td className="px-4 py-4">
                       <Link href={`/dashboard/projects/${project.projectId}`}>
@@ -189,7 +280,9 @@ export default function DashboardHome() {
             </table>
           </div>
           {data.projectSummaries.length > 6 && (
-            <div className="mt-3 text-xs text-white/60">Showing top 6 projects by activity.</div>
+            <div className="mt-3 text-xs text-white/60">
+              Showing top 6 projects by activity.
+            </div>
           )}
         </div>
       )}
@@ -197,7 +290,9 @@ export default function DashboardHome() {
       <div className="mt-6 grid gap-4 xl:grid-cols-2">
         <div className="glass h-[320px] rounded-3xl p-5">
           <div className="text-sm font-semibold">Monthly Expenses</div>
-          {monthlyError && <div className="text-sm text-red-300 mt-2">{monthlyError}</div>}
+          {monthlyError && (
+            <div className="text-sm text-red-300 mt-2">{monthlyError}</div>
+          )}
           {monthlyLoading ? (
             <div className="h-64 animate-pulse bg-white/10 rounded mt-4" />
           ) : monthlyExpenses.length > 0 ? (
@@ -209,24 +304,28 @@ export default function DashboardHome() {
                   <YAxis stroke="#ffffff60" />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: '#1a1a1a',
-                      border: '1px solid #ffffff20',
-                      borderRadius: '8px',
+                      backgroundColor: "#1a1a1a",
+                      border: "1px solid #ffffff20",
+                      borderRadius: "8px",
                     }}
-                    labelStyle={{ color: '#ffffff' }}
-                    itemStyle={{ color: '#ffffff' }}
+                    labelStyle={{ color: "#ffffff" }}
+                    itemStyle={{ color: "#ffffff" }}
                   />
                   <Bar dataKey="total" fill="#ffc460" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           ) : (
-            <div className="mt-4 text-sm text-white/60">No monthly expense data available yet.</div>
+            <div className="mt-4 text-sm text-white/60">
+              No monthly expense data available yet.
+            </div>
           )}
         </div>
         <div className="glass h-[320px] rounded-3xl p-5">
           <div className="text-sm font-semibold">Expense Types</div>
-          {expenseTypesError && <div className="text-sm text-red-300 mt-2">{expenseTypesError}</div>}
+          {expenseTypesError && (
+            <div className="text-sm text-red-300 mt-2">{expenseTypesError}</div>
+          )}
           {expenseTypesLoading ? (
             <div className="h-64 animate-pulse bg-white/10 rounded mt-4" />
           ) : expenseTypes.length > 0 ? (
@@ -248,22 +347,48 @@ export default function DashboardHome() {
                     animationDuration={1200}
                   >
                     {expenseTypes.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                      />
                     ))}
                   </Pie>
                   <Tooltip
-                    contentStyle={{ backgroundColor: '#18181b', border: '1px solid #ffffff20', borderRadius: '16px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.5)', padding: '12px 16px', fontWeight: 600 }}
-                    formatter={(value: number) => `₹${value.toLocaleString('en-IN')}`}
+                    contentStyle={{
+                      backgroundColor: "#18181b",
+                      border: "1px solid #ffffff20",
+                      borderRadius: "16px",
+                      boxShadow: "0 10px 25px -5px rgba(0,0,0,0.5)",
+                      padding: "12px 16px",
+                      fontWeight: 600,
+                    }}
+                    labelStyle={{ color: "#ffffff" }}
+                    itemStyle={{ color: "#ffffff" }}
+                    formatter={(value: number) =>
+                      `₹${value.toLocaleString("en-IN")}`
+                    }
                   />
-                  <Legend layout="vertical" verticalAlign="middle" align="right" iconType="circle" wrapperStyle={{ fontWeight: 600, fontSize: '13px', lineHeight: '28px' }} />
+                  <Legend
+                    layout="vertical"
+                    verticalAlign="middle"
+                    align="right"
+                    iconType="circle"
+                    wrapperStyle={{
+                      fontWeight: 600,
+                      fontSize: "13px",
+                      lineHeight: "28px",
+                    }}
+                  />
                 </PieChart>
               </ResponsiveContainer>
             </div>
           ) : (
-            <div className="mt-4 text-sm text-white/60">No expense data available yet.</div>
+            <div className="mt-4 text-sm text-white/60">
+              No expense data available yet.
+            </div>
           )}
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useMemo } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { apiFetch } from '@/lib/api'
-import { ArrowLeft, FileText, ListChecks, Clock, Users, DollarSign, Plus, Truck } from 'lucide-react'
+import { ArrowLeft, FileText, ListChecks, Clock, Users, DollarSign, Plus, Truck, Calendar } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts'
@@ -97,7 +97,7 @@ export default function ProjectDetailPage() {
   const [bills, setBills] = useState<Bill[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [tab, setTab] = useState<'overview' | 'team' | 'vendors' | 'tasks' | 'timeline' | 'docs' | 'expenses' | 'bills' | 'financials'>('overview')
+  const [tab, setTab] = useState<'overview' | 'team' | 'vendors' | 'tasks' | 'timeline' | 'docs' | 'expenses' | 'bills' | 'financials' | 'dpr'>('overview')
   const [showExpenseModal, setShowExpenseModal] = useState(false)
   const [showTeamModal, setShowTeamModal] = useState(false)
   const [showBillModal, setShowBillModal] = useState(false)
@@ -161,6 +161,7 @@ export default function ProjectDetailPage() {
     { key: 'docs', label: 'Documents', icon: FileText },
     { key: 'expenses', label: 'Transactions', icon: DollarSign },
     { key: 'bills', label: 'Bills', icon: FileText },
+    { key: 'dpr', label: 'DPR', icon: Calendar },
   ] as const
 
   if (loading) {
@@ -588,6 +589,25 @@ export default function ProjectDetailPage() {
                   </table>
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {tab === 'dpr' && (
+          <div>
+            <div className="flex items-center justify-between">
+              <div className="text-sm font-semibold">Daily Progress Reports</div>
+              <Button
+                variant="secondary"
+                onClick={() => router.push('/dashboard/dpr')}
+                className="inline-flex items-center gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                View All DPR
+              </Button>
+            </div>
+            <div className="mt-4 text-sm text-white/60">
+              Daily Progress Reports for this project can be viewed and managed in the DPR section. Click the button above to access the complete DPR dashboard.
             </div>
           </div>
         )}

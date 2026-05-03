@@ -1,63 +1,83 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
-import { apiFetch } from '@/lib/api'
-import { ChevronDown, Eye, Briefcase } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { DateRangeFilter } from '@/components/ui/date-range-filter'
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { apiFetch } from "@/lib/api";
+import { ChevronDown, Eye, Briefcase, Edit } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { DateRangeFilter } from "@/components/ui/date-range-filter";
 
 type ProjectDetail = {
-  projectId: string
-  projectName: string
-  bills: number
-  payments: number
-  expenses: number
-  pending: number
-}
+  projectId: string;
+  projectName: string;
+  bills: number;
+  payments: number;
+  expenses: number;
+  pending: number;
+};
 
 type ClientSummary = {
-  clientName: string
-  totalBills: number
-  totalPayments: number
-  pendingAmount: number
-  projectCount: number
-  projects: ProjectDetail[]
-}
+  clientName: string;
+  totalBills: number;
+  totalPayments: number;
+  pendingAmount: number;
+  projectCount: number;
+  projects: ProjectDetail[];
+};
 
 export default function ClientsPage() {
-  const [clients, setClients] = useState<ClientSummary[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [expandedClient, setExpandedClient] = useState<string | null>(null)
-  const [selectedClient, setSelectedClient] = useState<ClientSummary | null>(null)
-  const [showDetailsModal, setShowDetailsModal] = useState(false)
+  const [clients, setClients] = useState<ClientSummary[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [expandedClient, setExpandedClient] = useState<string | null>(null);
+  const [selectedClient, setSelectedClient] = useState<ClientSummary | null>(
+    null,
+  );
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingClient, setEditingClient] = useState<ClientSummary | null>(
+    null,
+  );
+  const [editForm, setEditForm] = useState({
+    clientName: "",
+    email: "",
+    phone: "",
+    address: "",
+  });
 
-  const [fromDate, setFromDate] = useState<string | undefined>(undefined)
-  const [toDate, setToDate] = useState<string | undefined>(undefined)
+  const [fromDate, setFromDate] = useState<string | undefined>(undefined);
+  const [toDate, setToDate] = useState<string | undefined>(undefined);
 
-  const token = typeof window !== 'undefined' ? localStorage.getItem('acls_token') || '' : ''
+  const token =
+    typeof window !== "undefined"
+      ? localStorage.getItem("acls_token") || ""
+      : "";
 
   useEffect(() => {
-    const params = new URLSearchParams()
-    if (fromDate) params.set('from', fromDate)
-    if (toDate) params.set('to', toDate)
+    const params = new URLSearchParams();
+    if (fromDate) params.set("from", fromDate);
+    if (toDate) params.set("to", toDate);
 
-    apiFetch<{ clientSummaries: ClientSummary[] }>(`/api/reports/client-summary?${params.toString()}`, { token })
+    apiFetch<{ clientSummaries: ClientSummary[] }>(
+      `/api/reports/client-summary?${params.toString()}`,
+      { token },
+    )
       .then((data) => setClients(data.clientSummaries || []))
-      .catch((e) => setError(e instanceof Error ? e.message : 'Failed to load clients'))
-      .finally(() => setLoading(false))
-  }, [token, fromDate, toDate])
+      .catch((e) =>
+        setError(e instanceof Error ? e.message : "Failed to load clients"),
+      )
+      .finally(() => setLoading(false));
+  }, [token, fromDate, toDate]);
 
   const openDetails = (client: ClientSummary) => {
-    setSelectedClient(client)
-    setShowDetailsModal(true)
-  }
+    setSelectedClient(client);
+    setShowDetailsModal(true);
+  };
 
   const getPaymentPercentage = (client: ClientSummary) => {
-    if (client.totalBills === 0) return 100
-    return (client.totalPayments / client.totalBills) * 100
-  }
+    if (client.totalBills === 0) return 100;
+    return (client.totalPayments / client.totalBills) * 100;
+  };
 
   return (
     <div className="space-y-6">
@@ -75,13 +95,14 @@ export default function ClientsPage() {
             from={fromDate}
             to={toDate}
             onChange={({ from, to }) => {
-              setFromDate(from)
-              setToDate(to)
+              setFromDate(from);
+              setToDate(to);
             }}
           />
           <div className="flex gap-2 text-sm text-white/60">
             <span>
-              Total Clients: <span className="font-semibold text-white">{clients.length}</span>
+              Total Clients:{" "}
+              <span className="font-semibold text-white">{clients.length}</span>
             </span>
           </div>
         </div>
@@ -118,9 +139,9 @@ export default function ClientsPage() {
       ) : (
         <div className="space-y-4">
           {clients.map((client, idx) => {
-            const paymentPercentage = getPaymentPercentage(client)
-            const isFullyPaid = paymentPercentage >= 100
-            
+            const paymentPercentage = getPaymentPercentage(client);
+            const isFullyPaid = paymentPercentage >= 100;
+
             return (
               <motion.div
                 key={client.clientName}
@@ -136,7 +157,10 @@ export default function ClientsPage() {
                         <Briefcase className="h-5 w-5 text-primary" />
                         {client.clientName}
                       </h3>
-                      <p className="mt-1 text-xs text-white/50">{client.projectCount} active project{client.projectCount !== 1 ? 's' : ''}</p>
+                      <p className="mt-1 text-xs text-white/50">
+                        {client.projectCount} active project
+                        {client.projectCount !== 1 ? "s" : ""}
+                      </p>
                     </div>
                     <div className="flex items-center gap-2">
                       <Button
@@ -149,12 +173,35 @@ export default function ClientsPage() {
                         <span className="hidden sm:inline">View Details</span>
                       </Button>
                       <button
-                        onClick={() => setExpandedClient(expandedClient === client.clientName ? null : client.clientName)}
+                        onClick={() => {
+                          setEditingClient(client);
+                          setEditForm({
+                            clientName: client.clientName,
+                            email: "",
+                            phone: "",
+                            address: "",
+                          });
+                          setShowEditModal(true);
+                        }}
+                        className="rounded-lg bg-white/10 p-2 text-white/60 hover:text-white hover:bg-white/20 transition-colors"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() =>
+                          setExpandedClient(
+                            expandedClient === client.clientName
+                              ? null
+                              : client.clientName,
+                          )
+                        }
                         className="rounded-lg bg-white/10 p-2 transition-colors hover:bg-white/20"
                       >
                         <ChevronDown
                           className={`h-5 w-5 transition-transform duration-300 ${
-                            expandedClient === client.clientName ? 'rotate-180' : ''
+                            expandedClient === client.clientName
+                              ? "rotate-180"
+                              : ""
                           }`}
                         />
                       </button>
@@ -169,7 +216,7 @@ export default function ClientsPage() {
                         <div className="text-xs text-white/60">Total Bills</div>
                       </div>
                       <div className="mt-2 text-lg font-bold text-white">
-                        ₹{Math.round(client.totalBills).toLocaleString('en-IN')}
+                        ₹{Math.round(client.totalBills).toLocaleString("en-IN")}
                       </div>
                     </div>
                     <div className="rounded-xl bg-white/5 p-3 border border-white/10">
@@ -178,7 +225,10 @@ export default function ClientsPage() {
                         <div className="text-xs text-white/60">Received</div>
                       </div>
                       <div className="mt-2 text-lg font-bold text-green-400">
-                        ₹{Math.round(client.totalPayments).toLocaleString('en-IN')}
+                        ₹
+                        {Math.round(client.totalPayments).toLocaleString(
+                          "en-IN",
+                        )}
                       </div>
                     </div>
                     <div className="rounded-xl bg-white/5 p-3 border border-white/10">
@@ -186,13 +236,23 @@ export default function ClientsPage() {
                         <span className="text-lg text-amber-400">₹</span>
                         <div className="text-xs text-white/60">Pending</div>
                       </div>
-                      <div className={`mt-2 text-lg font-bold ${isFullyPaid ? 'text-green-400' : 'text-amber-400'}`}>
-                        ₹{Math.round(client.pendingAmount).toLocaleString('en-IN')}
+                      <div
+                        className={`mt-2 text-lg font-bold ${isFullyPaid ? "text-green-400" : "text-amber-400"}`}
+                      >
+                        ₹
+                        {Math.round(client.pendingAmount).toLocaleString(
+                          "en-IN",
+                        )}
                       </div>
                     </div>
                     <div className="rounded-xl bg-white/5 p-3 border border-white/10">
                       <div className="flex items-center gap-2">
-                        <div className="h-4 w-4 rounded-full" style={{background: `conic-gradient(#10b981 ${paymentPercentage}%, #f59e0b ${paymentPercentage}%)`}} />
+                        <div
+                          className="h-4 w-4 rounded-full"
+                          style={{
+                            background: `conic-gradient(#10b981 ${paymentPercentage}%, #f59e0b ${paymentPercentage}%)`,
+                          }}
+                        />
                         <div className="text-xs text-white/60">Payment %</div>
                       </div>
                       <div className="mt-2 text-lg font-bold text-white">
@@ -204,20 +264,29 @@ export default function ClientsPage() {
                   {/* Progress Bar */}
                   <div className="mb-4">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-medium text-white/60">Payment Progress</span>
+                      <span className="text-xs font-medium text-white/60">
+                        Payment Progress
+                      </span>
                       <span className="text-xs font-semibold text-white">
-                        ₹{Math.round(client.totalPayments).toLocaleString('en-IN')} / ₹{Math.round(client.totalBills).toLocaleString('en-IN')}
+                        ₹
+                        {Math.round(client.totalPayments).toLocaleString(
+                          "en-IN",
+                        )}{" "}
+                        / ₹
+                        {Math.round(client.totalBills).toLocaleString("en-IN")}
                       </span>
                     </div>
                     <div className="h-2 bg-white/10 rounded-full overflow-hidden">
                       <motion.div
                         initial={{ width: 0 }}
-                        animate={{ width: `${Math.min(paymentPercentage, 100)}%` }}
-                        transition={{ duration: 0.8, ease: 'easeOut' }}
+                        animate={{
+                          width: `${Math.min(paymentPercentage, 100)}%`,
+                        }}
+                        transition={{ duration: 0.8, ease: "easeOut" }}
                         className={`h-full rounded-full ${
-                          isFullyPaid 
-                            ? 'bg-gradient-to-r from-green-500 to-green-400' 
-                            : 'bg-gradient-to-r from-amber-500 to-orange-400'
+                          isFullyPaid
+                            ? "bg-gradient-to-r from-green-500 to-green-400"
+                            : "bg-gradient-to-r from-amber-500 to-orange-400"
                         }`}
                       />
                     </div>
@@ -227,15 +296,20 @@ export default function ClientsPage() {
                   {expandedClient === client.clientName && (
                     <motion.div
                       initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
+                      animate={{ opacity: 1, height: "auto" }}
                       exit={{ opacity: 0, height: 0 }}
                       transition={{ duration: 0.3 }}
                       className="border-t border-white/10 pt-4"
                     >
-                      <div className="text-xs font-semibold uppercase text-white/60 mb-3">Projects</div>
+                      <div className="text-xs font-semibold uppercase text-white/60 mb-3">
+                        Projects
+                      </div>
                       <div className="space-y-2">
                         {client.projects.map((project) => {
-                          const projPaymentPercentage = project.bills === 0 ? 100 : (project.payments / project.bills) * 100
+                          const projPaymentPercentage =
+                            project.bills === 0
+                              ? 100
+                              : (project.payments / project.bills) * 100;
                           return (
                             <div
                               key={project.projectId}
@@ -243,37 +317,53 @@ export default function ClientsPage() {
                             >
                               <div className="flex items-start justify-between gap-3 mb-2">
                                 <div>
-                                  <div className="font-medium text-white">{project.projectName}</div>
+                                  <div className="font-medium text-white">
+                                    {project.projectName}
+                                  </div>
                                   <div className="mt-1 flex gap-3 text-xs text-white/60">
-                                    <span>Bills: <span className="text-white/80">₹{Math.round(project.bills / 1000)}K</span></span>
-                                    <span>Paid: <span className="text-green-400">₹{Math.round(project.payments / 1000)}K</span></span>
+                                    <span>
+                                      Bills:{" "}
+                                      <span className="text-white/80">
+                                        ₹{Math.round(project.bills / 1000)}K
+                                      </span>
+                                    </span>
+                                    <span>
+                                      Paid:{" "}
+                                      <span className="text-green-400">
+                                        ₹{Math.round(project.payments / 1000)}K
+                                      </span>
+                                    </span>
                                   </div>
                                 </div>
-                                <div className={`text-right text-xs font-semibold ${project.pending > 0 ? 'text-amber-400' : 'text-green-400'}`}>
+                                <div
+                                  className={`text-right text-xs font-semibold ${project.pending > 0 ? "text-amber-400" : "text-green-400"}`}
+                                >
                                   {projPaymentPercentage.toFixed(0)}%
                                 </div>
                               </div>
                               <div className="h-1 bg-white/10 rounded-full overflow-hidden">
                                 <motion.div
                                   initial={{ width: 0 }}
-                                  animate={{ width: `${Math.min(projPaymentPercentage, 100)}%` }}
+                                  animate={{
+                                    width: `${Math.min(projPaymentPercentage, 100)}%`,
+                                  }}
                                   transition={{ duration: 0.6 }}
                                   className={`h-full ${
-                                    project.pending <= 0 
-                                      ? 'bg-gradient-to-r from-green-500 to-green-400' 
-                                      : 'bg-gradient-to-r from-amber-500 to-orange-400'
+                                    project.pending <= 0
+                                      ? "bg-gradient-to-r from-green-500 to-green-400"
+                                      : "bg-gradient-to-r from-amber-500 to-orange-400"
                                   }`}
                                 />
                               </div>
                             </div>
-                          )
+                          );
                         })}
                       </div>
                     </motion.div>
                   )}
                 </div>
               </motion.div>
-            )
+            );
           })}
         </div>
       )}
@@ -295,15 +385,26 @@ export default function ClientsPage() {
                   {selectedClient.clientName}
                 </h2>
                 <p className="mt-2 text-sm text-white/60">
-                  Complete financial overview for {selectedClient.projectCount} project{selectedClient.projectCount !== 1 ? 's' : ''}
+                  Complete financial overview for {selectedClient.projectCount}{" "}
+                  project{selectedClient.projectCount !== 1 ? "s" : ""}
                 </p>
               </div>
               <button
                 onClick={() => setShowDetailsModal(false)}
                 className="rounded-lg bg-white/10 p-3 text-white/60 hover:bg-white/20 transition-colors"
               >
-                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <svg
+                  className="h-6 w-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             </div>
@@ -313,12 +414,18 @@ export default function ClientsPage() {
               <div className="rounded-xl bg-gradient-to-br from-blue-500/20 to-blue-500/10 border border-blue-500/30 p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-xs font-medium text-blue-300/80">Total Bills Raised</div>
+                    <div className="text-xs font-medium text-blue-300/80">
+                      Total Bills Raised
+                    </div>
                     <div className="mt-2 text-2xl font-bold text-white">
-                      ₹{Math.round(selectedClient.totalBills).toLocaleString('en-IN')}
+                      ₹
+                      {Math.round(selectedClient.totalBills).toLocaleString(
+                        "en-IN",
+                      )}
                     </div>
                     <div className="mt-1 text-xs text-blue-300/60">
-                      {selectedClient.projectCount} project{selectedClient.projectCount !== 1 ? 's' : ''}
+                      {selectedClient.projectCount} project
+                      {selectedClient.projectCount !== 1 ? "s" : ""}
                     </div>
                   </div>
                 </div>
@@ -326,43 +433,62 @@ export default function ClientsPage() {
               <div className="rounded-xl bg-gradient-to-br from-green-500/20 to-green-500/10 border border-green-500/30 p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-xs font-medium text-green-300/80">Payment Received</div>
+                    <div className="text-xs font-medium text-green-300/80">
+                      Payment Received
+                    </div>
                     <div className="mt-2 text-2xl font-bold text-white">
-                      ₹{Math.round(selectedClient.totalPayments).toLocaleString('en-IN')}
+                      ₹
+                      {Math.round(selectedClient.totalPayments).toLocaleString(
+                        "en-IN",
+                      )}
                     </div>
                     <div className="mt-1 text-xs text-green-300/60">
-                      {getPaymentPercentage(selectedClient).toFixed(0)}% received
+                      {getPaymentPercentage(selectedClient).toFixed(0)}%
+                      received
                     </div>
                   </div>
                 </div>
               </div>
-              <div className={`rounded-xl border p-4 ${
-                selectedClient.pendingAmount > 0 
-                  ? 'bg-gradient-to-br from-amber-500/20 to-amber-500/10 border-amber-500/30' 
-                  : 'bg-gradient-to-br from-green-500/20 to-green-500/10 border-green-500/30'
-              }`}>
+              <div
+                className={`rounded-xl border p-4 ${
+                  selectedClient.pendingAmount > 0
+                    ? "bg-gradient-to-br from-amber-500/20 to-amber-500/10 border-amber-500/30"
+                    : "bg-gradient-to-br from-green-500/20 to-green-500/10 border-green-500/30"
+                }`}
+              >
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className={`text-xs font-medium ${
-                      selectedClient.pendingAmount > 0 
-                        ? 'text-amber-300/80' 
-                        : 'text-green-300/80'
-                    }`}>
+                    <div
+                      className={`text-xs font-medium ${
+                        selectedClient.pendingAmount > 0
+                          ? "text-amber-300/80"
+                          : "text-green-300/80"
+                      }`}
+                    >
                       Pending Amount
                     </div>
-                    <div className={`mt-2 text-2xl font-bold ${
-                      selectedClient.pendingAmount > 0 
-                        ? 'text-amber-300' 
-                        : 'text-green-300'
-                    }`}>
-                      ₹{Math.round(selectedClient.pendingAmount).toLocaleString('en-IN')}
+                    <div
+                      className={`mt-2 text-2xl font-bold ${
+                        selectedClient.pendingAmount > 0
+                          ? "text-amber-300"
+                          : "text-green-300"
+                      }`}
+                    >
+                      ₹
+                      {Math.round(selectedClient.pendingAmount).toLocaleString(
+                        "en-IN",
+                      )}
                     </div>
-                    <div className={`mt-1 text-xs ${
-                      selectedClient.pendingAmount > 0 
-                        ? 'text-amber-300/60' 
-                        : 'text-green-300/60'
-                    }`}>
-                      {selectedClient.pendingAmount <= 0 ? 'Fully Paid' : 'Outstanding'}
+                    <div
+                      className={`mt-1 text-xs ${
+                        selectedClient.pendingAmount > 0
+                          ? "text-amber-300/60"
+                          : "text-green-300/60"
+                      }`}
+                    >
+                      {selectedClient.pendingAmount <= 0
+                        ? "Fully Paid"
+                        : "Outstanding"}
                     </div>
                   </div>
                 </div>
@@ -372,7 +498,9 @@ export default function ClientsPage() {
             {/* Payment Progress */}
             <div className="mb-6 rounded-xl bg-white/5 border border-white/10 p-4">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-sm font-semibold text-white">Overall Payment Status</span>
+                <span className="text-sm font-semibold text-white">
+                  Overall Payment Status
+                </span>
                 <span className="text-sm font-bold text-primary">
                   {getPaymentPercentage(selectedClient).toFixed(1)}%
                 </span>
@@ -380,12 +508,14 @@ export default function ClientsPage() {
               <div className="h-3 bg-white/10 rounded-full overflow-hidden">
                 <motion.div
                   initial={{ width: 0 }}
-                  animate={{ width: `${Math.min(getPaymentPercentage(selectedClient), 100)}%` }}
-                  transition={{ duration: 1, ease: 'easeOut' }}
+                  animate={{
+                    width: `${Math.min(getPaymentPercentage(selectedClient), 100)}%`,
+                  }}
+                  transition={{ duration: 1, ease: "easeOut" }}
                   className={`h-full rounded-full ${
-                    selectedClient.pendingAmount <= 0 
-                      ? 'bg-gradient-to-r from-green-500 to-green-400' 
-                      : 'bg-gradient-to-r from-amber-500 to-orange-400'
+                    selectedClient.pendingAmount <= 0
+                      ? "bg-gradient-to-r from-green-500 to-green-400"
+                      : "bg-gradient-to-r from-amber-500 to-orange-400"
                   }`}
                 />
               </div>
@@ -393,53 +523,83 @@ export default function ClientsPage() {
 
             {/* Project Details Table */}
             <div className="space-y-3">
-              <h3 className="text-sm font-bold uppercase text-white/80 tracking-wide">Project-wise Details</h3>
+              <h3 className="text-sm font-bold uppercase text-white/80 tracking-wide">
+                Project-wise Details
+              </h3>
               <div className="overflow-x-auto rounded-xl border border-white/10 bg-white/5">
                 <table className="w-full text-sm">
                   <thead className="border-b border-white/10 bg-white/5">
                     <tr>
-                      <th className="px-4 py-3 text-left font-semibold text-white/80">Sr No.</th>
-                      <th className="px-4 py-3 text-left font-semibold text-white/80">Project Name</th>
-                      <th className="px-4 py-3 text-right font-semibold text-white/80">Bills Raised</th>
-                      <th className="px-4 py-3 text-right font-semibold text-white/80">Payments</th>
-                      <th className="px-4 py-3 text-right font-semibold text-white/80">Pending</th>
-                      <th className="px-4 py-3 text-center font-semibold text-white/80">Status</th>
+                      <th className="px-4 py-3 text-left font-semibold text-white/80">
+                        Sr No.
+                      </th>
+                      <th className="px-4 py-3 text-left font-semibold text-white/80">
+                        Project Name
+                      </th>
+                      <th className="px-4 py-3 text-right font-semibold text-white/80">
+                        Bills Raised
+                      </th>
+                      <th className="px-4 py-3 text-right font-semibold text-white/80">
+                        Payments
+                      </th>
+                      <th className="px-4 py-3 text-right font-semibold text-white/80">
+                        Pending
+                      </th>
+                      <th className="px-4 py-3 text-center font-semibold text-white/80">
+                        Status
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/10">
                     {selectedClient.projects.map((project, index) => {
-                      const isFullyPaid = project.pending <= 0
-                      
+                      const isFullyPaid = project.pending <= 0;
+
                       return (
                         <tr
                           key={project.projectId}
                           className="hover:bg-white/10 transition-colors"
                         >
-                          <td className="px-4 py-4 text-white/60">{index + 1}</td>
-                          <td className="px-4 py-4 font-medium text-white">{project.projectName}</td>
+                          <td className="px-4 py-4 text-white/60">
+                            {index + 1}
+                          </td>
+                          <td className="px-4 py-4 font-medium text-white">
+                            {project.projectName}
+                          </td>
                           <td className="px-4 py-4 text-right text-blue-300">
-                            ₹{Math.round(project.bills).toLocaleString('en-IN')}
+                            ₹{Math.round(project.bills).toLocaleString("en-IN")}
                           </td>
                           <td className="px-4 py-4 text-right text-green-300">
-                            ₹{Math.round(project.payments).toLocaleString('en-IN')}
+                            ₹
+                            {Math.round(project.payments).toLocaleString(
+                              "en-IN",
+                            )}
                           </td>
-                          <td className={`px-4 py-4 text-right font-semibold ${
-                            isFullyPaid ? 'text-green-300' : 'text-amber-300'
-                          }`}>
-                            ₹{Math.round(project.pending).toLocaleString('en-IN')}
+                          <td
+                            className={`px-4 py-4 text-right font-semibold ${
+                              isFullyPaid ? "text-green-300" : "text-amber-300"
+                            }`}
+                          >
+                            ₹
+                            {Math.round(project.pending).toLocaleString(
+                              "en-IN",
+                            )}
                           </td>
                           <td className="px-4 py-4 text-center">
-                            <span className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold ${
-                              isFullyPaid
-                                ? 'bg-green-500/20 text-green-300'
-                                : 'bg-amber-500/20 text-amber-300'
-                            }`}>
-                              <span className={`h-2 w-2 rounded-full ${isFullyPaid ? 'bg-green-400' : 'bg-amber-400'}`} />
-                              {isFullyPaid ? 'Paid' : 'Pending'}
+                            <span
+                              className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold ${
+                                isFullyPaid
+                                  ? "bg-green-500/20 text-green-300"
+                                  : "bg-amber-500/20 text-amber-300"
+                              }`}
+                            >
+                              <span
+                                className={`h-2 w-2 rounded-full ${isFullyPaid ? "bg-green-400" : "bg-amber-400"}`}
+                              />
+                              {isFullyPaid ? "Paid" : "Pending"}
                             </span>
                           </td>
                         </tr>
-                      )
+                      );
                     })}
                   </tbody>
                 </table>
@@ -459,6 +619,165 @@ export default function ClientsPage() {
           </motion.div>
         </div>
       )}
+
+      {/* Edit Modal */}
+      {showEditModal && editingClient && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            className="glass w-full max-w-lg overflow-y-auto rounded-2xl p-6 border border-white/20"
+          >
+            {/* Modal Header */}
+            <div className="flex items-start justify-between gap-4 mb-6">
+              <div>
+                <h2 className="text-xl font-bold text-white flex items-center gap-3">
+                  <Edit className="h-5 w-5 text-primary" />
+                  Edit Client
+                </h2>
+                <p className="mt-1 text-sm text-white/60">
+                  Update client information for {editingClient.clientName}
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setShowEditModal(false);
+                  setEditingClient(null);
+                  setEditForm({
+                    clientName: "",
+                    email: "",
+                    phone: "",
+                    address: "",
+                  });
+                }}
+                className="rounded-lg bg-white/10 p-2 text-white/60 hover:bg-white/20 transition-colors"
+              >
+                <svg
+                  className="h-5 w-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            {/* Edit Form */}
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-white/80 mb-2">
+                  Client Name
+                </label>
+                <input
+                  type="text"
+                  value={editForm.clientName}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, clientName: e.target.value })
+                  }
+                  className="w-full rounded-lg bg-white/10 border border-white/20 px-4 py-2 text-white placeholder-white/40 focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors"
+                  placeholder="Enter client name"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-white/80 mb-2">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  value={editForm.email}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, email: e.target.value })
+                  }
+                  className="w-full rounded-lg bg-white/10 border border-white/20 px-4 py-2 text-white placeholder-white/40 focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors"
+                  placeholder="Enter email address"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-white/80 mb-2">
+                  Phone Number
+                </label>
+                <input
+                  type="tel"
+                  value={editForm.phone}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, phone: e.target.value })
+                  }
+                  className="w-full rounded-lg bg-white/10 border border-white/20 px-4 py-2 text-white placeholder-white/40 focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors"
+                  placeholder="Enter phone number"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-white/80 mb-2">
+                  Address
+                </label>
+                <textarea
+                  value={editForm.address}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, address: e.target.value })
+                  }
+                  rows={3}
+                  className="w-full rounded-lg bg-white/10 border border-white/20 px-4 py-2 text-white placeholder-white/40 focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors resize-none"
+                  placeholder="Enter address"
+                />
+              </div>
+            </div>
+
+            {/* Modal Actions */}
+            <div className="mt-6 flex justify-end gap-3">
+              <Button
+                onClick={() => {
+                  setShowEditModal(false);
+                  setEditingClient(null);
+                  setEditForm({
+                    clientName: "",
+                    email: "",
+                    phone: "",
+                    address: "",
+                  });
+                }}
+                variant="secondary"
+                className="px-6"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={() => {
+                  // Basic validation
+                  if (!editForm.clientName.trim()) {
+                    setError("Client name is required");
+                    return;
+                  }
+
+                  // Here you would normally make an API call to update the client
+                  // For now, we'll just close the modal and show a success message
+                  console.log("Updating client:", editForm);
+                  setShowEditModal(false);
+                  setEditingClient(null);
+                  setEditForm({
+                    clientName: "",
+                    email: "",
+                    phone: "",
+                    address: "",
+                  });
+                }}
+                className="px-6"
+              >
+                Save Changes
+              </Button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
-  )
+  );
 }
