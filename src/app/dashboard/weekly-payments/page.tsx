@@ -1,20 +1,31 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { CheckCircle2, Clock, DollarSign } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import { Button } from "@/components/ui/button";
+
+type BreakdownItem = {
+  type: string;
+  totalDays: number;
+  overtimeHours: number;
+  ratePerDay: number;
+  overtimePerHour: number;
+  totalAmount: number;
+};
+
+type ProjectItem = {
+  _id: string;
+  projectName: string;
+};
 
 type WeeklyPayment = {
   _id: string;
   weekStartDate: string;
   weekEndDate: string;
-  projectId: {
-    _id: string;
-    projectName: string;
-  };
+  projectId: ProjectItem;
   siteId: string;
-  breakdown: any[];
+  breakdown: BreakdownItem[];
   totalAmount: number;
   status: "pending" | "approved" | "paid";
   createdAt: string;
@@ -24,23 +35,24 @@ export default function WeeklyPaymentsPage() {
   const [payments, setPayments] = useState<WeeklyPayment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "approved" | "paid">("all");
+  const [statusFilter, setStatusFilter] = useState<
+    "all" | "pending" | "approved" | "paid"
+  >("all");
   const [projectFilter, setProjectFilter] = useState<string>("");
-  const [projects, setProjects] = useState<any[]>([]);
+  const [projects, setProjects] = useState<ProjectItem[]>([]);
 
-  const token = typeof window !== "undefined" ? localStorage.getItem("acls_token") || "" : "";
+  const token =
+    typeof window !== "undefined"
+      ? localStorage.getItem("acls_token") || ""
+      : "";
 
-  useEffect(() => {
-    fetchPayments();
-  }, [token, statusFilter, projectFilter]);
-
-  const fetchPayments = async () => {
+  const fetchPayments = useCallback(async () => {
     try {
       setLoading(true);
 
       let url = "/api/weekly-payments";
       const params = [];
-      
+
       if (statusFilter !== "all") {
         params.push(`status=${statusFilter}`);
       }
@@ -51,12 +63,14 @@ export default function WeeklyPaymentsPage() {
 
       const [paymentsData, projectsData] = await Promise.all([
         apiFetch<WeeklyPayment[]>(url, { token }),
-        apiFetch<any[]>("/api/projects", { token })
+        apiFetch<ProjectItem[]>("/api/projects", { token }),
       ]);
 
       let filtered = paymentsData;
       if (projectFilter) {
-        filtered = paymentsData.filter(p => p.projectId._id === projectFilter);
+        filtered = paymentsData.filter(
+          (p) => p.projectId._id === projectFilter,
+        );
       }
 
       setPayments(filtered);
@@ -66,7 +80,11 @@ export default function WeeklyPaymentsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token, statusFilter, projectFilter]);
+
+  useEffect(() => {
+    fetchPayments();
+  }, [fetchPayments]);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -101,7 +119,7 @@ export default function WeeklyPaymentsPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Weekly Labour Payments</h1>
         <div className="flex gap-2">
-          {["all", "pending", "approved", "paid"].map(status => (
+          {["all", "pending", "approved", "paid"].map((status) => (
             <Button
               key={status}
               variant={statusFilter === status ? "default" : "secondary"}
@@ -118,19 +136,28 @@ export default function WeeklyPaymentsPage() {
         <div className="rounded-lg border p-4">
           <p className="text-sm text-gray-600">Total Pending</p>
           <p className="text-2xl font-bold">
-            ₹{payments.filter(p => p.status === "pending").reduce((sum, p) => sum + p.totalAmount, 0)}
+            ₹
+            {payments
+              .filter((p) => p.status === "pending")
+              .reduce((sum, p) => sum + p.totalAmount, 0)}
           </p>
         </div>
         <div className="rounded-lg border p-4">
           <p className="text-sm text-gray-600">Total Approved</p>
           <p className="text-2xl font-bold">
-            ₹{payments.filter(p => p.status === "approved").reduce((sum, p) => sum + p.totalAmount, 0)}
+            ₹
+            {payments
+              .filter((p) => p.status === "approved")
+              .reduce((sum, p) => sum + p.totalAmount, 0)}
           </p>
         </div>
         <div className="rounded-lg border p-4">
           <p className="text-sm text-gray-600">Total Paid</p>
           <p className="text-2xl font-bold">
-            ₹{payments.filter(p => p.status === "paid").reduce((sum, p) => sum + p.totalAmount, 0)}
+            ₹
+            {payments
+              .filter((p) => p.status === "paid")
+              .reduce((sum, p) => sum + p.totalAmount, 0)}
           </p>
         </div>
       </div>
@@ -154,7 +181,9 @@ export default function WeeklyPaymentsPage() {
         </div>
       </div>
 
-      {error && <div className="rounded-lg bg-red-50 p-4 text-red-700">{error}</div>}
+      {error && (
+        <div className="rounded-lg bg-red-50 p-4 text-red-700">{error}</div>
+      )}
 
       <div className="space-y-4">
         {payments.length === 0 ? (
@@ -162,7 +191,7 @@ export default function WeeklyPaymentsPage() {
             No payments found
           </div>
         ) : (
-          payments.map(payment => (
+          payments.map((payment) => (
             <div
               key={payment._id}
               className={`rounded-lg border p-6 ${getStatusStyles(payment.status)}`}
@@ -171,12 +200,17 @@ export default function WeeklyPaymentsPage() {
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     {getStatusIcon(payment.status)}
-                    <h3 className="text-lg font-semibold">{payment.projectId.projectName}</h3>
-                    <span className="text-sm text-gray-600">({payment.siteId})</span>
+                    <h3 className="text-lg font-semibold">
+                      {payment.projectId.projectName}
+                    </h3>
+                    <span className="text-sm text-gray-600">
+                      ({payment.siteId})
+                    </span>
                   </div>
 
                   <p className="mt-2 text-sm text-gray-600">
-                    Week of {new Date(payment.weekStartDate).toLocaleDateString()} to{" "}
+                    Week of{" "}
+                    {new Date(payment.weekStartDate).toLocaleDateString()} to{" "}
                     {new Date(payment.weekEndDate).toLocaleDateString()}
                   </p>
 
@@ -185,7 +219,9 @@ export default function WeeklyPaymentsPage() {
                       <div key={idx} className="text-sm">
                         <p className="font-medium capitalize">{item.type}</p>
                         <p className="text-gray-600">{item.totalDays} days</p>
-                        <p className="font-semibold">₹{item.totalAmount.toFixed(2)}</p>
+                        <p className="font-semibold">
+                          ₹{item.totalAmount.toFixed(2)}
+                        </p>
                       </div>
                     ))}
                   </div>

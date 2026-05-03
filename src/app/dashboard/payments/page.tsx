@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Plus, Edit, Trash2 } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -46,38 +46,41 @@ export default function PaymentsPage() {
       ? localStorage.getItem("acls_token") || ""
       : "";
 
-  const loadPayments = async () => {
-    setLoading(true);
-    setError(null);
+  const loadPayments = useCallback(async () => {
     try {
-      const params = new URLSearchParams();
-      if (projectFilter !== "all") params.set("projectId", projectFilter);
-      if (fromDate) params.set("from", fromDate);
-      if (toDate) params.set("to", toDate);
-      const paymentsPath = params.toString()
-        ? `/api/payments?${params.toString()}`
-        : "/api/payments";
-      const [paymentsData, projectsData] = await Promise.all([
-        apiFetch<Payment[]>(paymentsPath, { token }),
-        apiFetch<Project[]>("/api/projects", { token }),
-      ]);
-      setPayments(
-        paymentsData.filter(
-          (payment) =>
-            !(payment.title === "dummy" && Number(payment.amount) === 0),
-        ),
-      );
-      setProjects(projectsData);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to load payments");
+      setLoading(true);
+      setError(null);
+      let url = "/api/payments";
+      const params = [];
+
+      if (projectFilter) {
+        params.push(`project=${projectFilter}`);
+      }
+
+      if (fromDate) {
+        params.push(`fromDate=${fromDate}`);
+      }
+
+      if (toDate) {
+        params.push(`toDate=${toDate}`);
+      }
+
+      if (params.length > 0) {
+        url += `?${params.join("&")}`;
+      }
+
+      const data = await apiFetch<Payment[]>(url, { token });
+      setPayments(data || []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load payments");
     } finally {
       setLoading(false);
     }
-  };
+  }, [token, projectFilter, fromDate, toDate]);
 
   useEffect(() => {
     loadPayments();
-  }, [token, projectFilter, fromDate, toDate]);
+  }, [loadPayments]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
