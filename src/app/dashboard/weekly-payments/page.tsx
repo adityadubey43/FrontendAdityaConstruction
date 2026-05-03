@@ -123,7 +123,7 @@ export default function WeeklyPaymentsPage() {
             <Button
               key={status}
               variant={statusFilter === status ? "default" : "secondary"}
-              onClick={() => setStatusFilter(status as any)}
+              onClick={() => setStatusFilter(status as "all" | "pending" | "approved" | "paid")}
               className="capitalize"
             >
               {status}
@@ -173,7 +173,7 @@ export default function WeeklyPaymentsPage() {
               <option value="">All Projects</option>
               {projects.map((project) => (
                 <option key={project._id} value={project._id}>
-                  {project.projectName || project.name}
+                  {project.projectName}
                 </option>
               ))}
             </select>

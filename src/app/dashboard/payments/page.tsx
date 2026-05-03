@@ -69,8 +69,12 @@ export default function PaymentsPage() {
         url += `?${params.join("&")}`;
       }
 
-      const data = await apiFetch<Payment[]>(url, { token });
+      const [data, projectsData] = await Promise.all([
+        apiFetch<Payment[]>(url, { token }),
+        apiFetch<Project[]>("/api/projects", { token }),
+      ]);
       setPayments(data || []);
+      setProjects(projectsData || []);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load payments");
     } finally {

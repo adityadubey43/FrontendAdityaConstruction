@@ -5,7 +5,6 @@ import {
   Plus,
   Trash2,
   Edit2,
-  Upload,
   X,
   ChevronLeft,
   ChevronRight,
